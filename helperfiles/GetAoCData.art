@@ -1,23 +1,25 @@
 #!/home/grimalkin/.arturo/bin/arturo -e
-;==========================================
-; Advent of Code solution 
-;
-; @file: tools/<year>_<day>.art (or default)
-; @author: Mixomycetes
-; function that fetches aoc data, and stores it to a data dir.
+;;==========================================
+;; Advent of Code solution 
+;;
+;; @file: tools/<year>_<day>.art (or default)
+;; @author: Mixomycetes
+;; function that fetches aoc data, and stores it to a data dir.
 
-inspect arg
+;; arguments: 
+;; * year, string
+;; * day:  string
 
 if? ((size arg) < 2) [
     ;print ["Please pass in 2 arguments (day and year) and add the .token to the parent dir."]
-    day: now\day   ;day:2
-
     year: now\year  ;year: 2023
+    day: now\day   ;day:2    
     ]
 else 
     [
-    day:  arg\0  
-    year: arg\1
+    
+    year: arg\0
+    day:  arg\1  
     print [day "day" "year" year]
     ]
 

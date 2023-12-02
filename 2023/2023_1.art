@@ -6,14 +6,17 @@
 ; @author: Mixomycetes
 ;==========================================
 
+
 FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/grimalkin/AoC/2023/2023_1.art'
 ;print FilenamewoExtention
 [year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 
 
 ;print "reading input..."
-datafilename: ~"input|year|_|day|.txt"
+datafilename: ~"../data/input|year|_|day|.txt"
 ;print datafilename
-inputstr: read.lines relative datafilename
+;do "../helperfiles/GetAoCData.art" ; fetches the data and stores it in
+;inputstr:  chop read datafilename
+inputstr: read.lines datafilename
 
 if? zero? size inputstr [print "Error loading data. please name your file input<year>_<day>.txt"]
 else [];print "... done!"]
