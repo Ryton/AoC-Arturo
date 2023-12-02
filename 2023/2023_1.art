@@ -6,13 +6,17 @@
 ; @author: Mixomycetes
 ;==========================================
 
-FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/Grim/AoC/2023/2023_1.art'
-[year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 ;print [day,year]
-print "reading input..."
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/grimalkin/AoC/2023/2023_1.art'
+;print FilenamewoExtention
+[year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 
 
-inputstr: read.lines relative ~"input|year||day|.txt"; for B
+;print "reading input..."
+datafilename: ~"input|year|_|day|.txt"
+;print datafilename
+inputstr: read.lines relative datafilename
+
 if? zero? size inputstr [print "Error loading data. please name your file input<year>_<day>.txt"]
-else [print "done!"]
+else [];print "... done!"]
 
 ;print inputstr
 ; demoword: "threeblztlfgltlznxv9cqsjfnmgftnmscjmxpmfkleight"
@@ -74,6 +78,13 @@ solve_B:$[parsed]
     return summed  
 
  ]
-
+;print("pasring...")
+;print("solving...")
+t1: benchmark.get [
  print [~"|year| |day| a: " (solve_A inputstr)] ; 2 less bc of white line in end
+ ]
+t2: benchmark.get  [
  print [~"|year| |day| b: " (solve_B inputstr)] ; 2 less bc of white line in end
+]
+
+print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")

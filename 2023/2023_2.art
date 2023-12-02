@@ -17,7 +17,7 @@ demoinput: {Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green}
  
 ; inputstr: read.lines ~"input|year||day|.txt"; for B
 ; print demoinput
-inputstr: chop read ~"input|year||day|.txt"; for B
+inputstr: chop read ~"input|year|_|day|.txt"; for B
 
 ; print inputstr
 
@@ -73,7 +73,7 @@ solve_A: $[dictlist][
         check3: ( refdict\["b"] >= adict\["b"])
         check:  (all? @[check1 check2 check3])
         
-        if? check [ ;print [~"added |expId|"]
+        if check [ ;print [~"added |expId|"]
                 'possibles ++ (expId+1) 
                 
     ]
@@ -97,5 +97,13 @@ solve_B: $[dictlist][
 
 dictlist: parse inputstr
 ;print(dictlist)
+
+
+t1: benchmark.get [
  print [~"|year| |day| a: " (solve_A dictlist)] ; 2 less bc of white line in end
-  print [~"|year| |day| b: " (solve_B dictlist)] ; 2 less bc of white line in end
+ ]
+t2: benchmark.get  [
+ print [~"|year| |day| b: " (solve_B dictlist)] ; 2 less bc of white line in end
+]
+
+print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
