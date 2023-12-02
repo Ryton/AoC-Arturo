@@ -8,9 +8,12 @@
 
 FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/Grim/AoC/2023/2023_1.art'
 [year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 ;print [day,year]
-print "reading input"
+print "reading input..."
 
 inputstr: read.lines relative ~"input|year||day|.txt"; for B
+if? zero? size inputstr [print "Error loading data. please name your file input<year>_<day>.txt"]
+else [print "done!"]
+
 ;print inputstr
 ; demoword: "threeblztlfgltlznxv9cqsjfnmgftnmscjmxpmfkleight"
 
@@ -38,6 +41,7 @@ solve_A:$[parsed]
 solve_B:$[parsed]
  [
     summed:0
+    storelist:[]
     digtdict: #[ "one":"1", "two":"2", "three":"3", "four":"4", "five":"5", "six":"6", "seven":"7", "eight":"8","nine":"9"]
     
     ; to fix https://www.reddit.com/r/adventofcode/comments/1884fpl/2023_day_1for_those_who_stuck_on_part_2/?rdt=50560
@@ -45,31 +49,31 @@ solve_B:$[parsed]
     ;print  digtdict
     ;digtdict: #[ "one":"one1one", "two":"two2two", "three":"three3three", "four":"four4four", "five":"five5five", "six":"six6six", "seven":"seven7seven", "eight":"eight8eight","nine":"nine9nine"]
     
-    regexdict: #[ "one":{/one*/}, "two":{/two*/}, "three": {/three*/}, "four":{/four*/}, "five":{/five*/}, "six":{/six*/}, "seven":{/seven*/}, "eight":{/eight*/},"nine":{/nine*/}]
+    regexdict: #[ "one":{/(one)/}, "two":{/(two)/}, "three": {/(three)/}, "four":{/(four)/}, "five":{/(five)/}, "six":{/(six)/}, "seven":{/(seven)/}, "eight":{/(eight)/},"nine":{/(nine)/}]
 
-
-        loop inputstr 'word [
+        loop.with: 'it inputstr 'word [
         origword: word 
         if? ((size word) > 0) [
                 loop keys digtdict 'strnumber [
                 pattern:  regexdict\[strnumber]
                 ;print pattern
-                'word: replace word pattern (digtdict\[strnumber])
+                'word: replace word pattern (digtdict\[strnumber])                
                 ]
+
         
         pattern: {/[a-z]*/}
         nrstr: replace word pattern ""
         nrlist: (split nrstr)
         nr: ((to :integer (first nrlist))*10)+ ( to :integer (last nrlist))
-        ;print  ~"|origword| -> |nr|"
+
+        'storelist ++ nr
         'summed: summed + nr
         ]
         else []
     ]
-    return summed
+    return summed  
 
  ]
-
 
  print [~"|year| |day| a: " (solve_A inputstr)] ; 2 less bc of white line in end
  print [~"|year| |day| b: " (solve_B inputstr)] ; 2 less bc of white line in end
