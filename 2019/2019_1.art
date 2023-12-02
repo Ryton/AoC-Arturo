@@ -1,0 +1,28 @@
+inputstr: read "input2019_1.txt"
+;print inputstr
+arr: split.lines: " "  inputstr chop 'arr  1
+;print  [first arr  last arr]
+;print size arr
+
+fuelcalc: $[m][floor (m/3)-2]
+total: new []
+loop arr 'm [
+
+    'total ++ (fuelcalc (to :integer m))  
+]
+print ["day 2019- 1a: " sum total]
+
+
+iterativefuelcalc: function [m][ ; max [0 (floor (m/3)-2 + iterativefuelcalc (floor(m/3)-2) )]
+
+	if?  greater? (0 floor (m/3)-2)  [return 0]
+	else [ return (floor (m/3)-2) + iterativefuelcalc (floor(m/3)-2)
+           ]
+]
+
+
+itertotal: new []
+loop arr 'm [
+    'itertotal ++ (iterativefuelcalc (to :integer m))  
+]
+print ["day 2019- 1b: " sum itertotal]
