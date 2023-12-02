@@ -1,0 +1,164 @@
+#!/home/ryton/.arturo/bin/arturo -e
+inputstr: (read "input2015_6.txt" )
+
+
+replace 'inputstr "turn on " "ON,"            ; str: "hexxo"
+replace 'inputstr "turn off " "OFF,"            ; str: "hexxo"
+replace 'inputstr "toggle " "FLIP,"            ; str: "hexxo"
+replace 'inputstr " through " ","            ; str: "hexxo"
+replace 'inputstr "\n" ";"            ; str: "hexxo"
+
+arr: (split.by: ";" inputstr)
+
+;print arr
+nlines: size  arr 
+;print arr\[1]
+
+n: 0
+
+
+; affectx ligthson
+turnon: $[affectedlights][     
+    print "turnon"
+    newlights: new union lightson affectedlights 
+    print ["ligthson size " size newlights]
+    return newlights
+]
+ 
+turnoff: $[affectedlights ][ ; affectx ligthson
+    print "turnoff"
+    overlap: new intersection affectedlights lightson
+    print "overlap done"
+    newlights: new difference lightson overlap; intersection  affectedlights 
+    print ["ligthson size " size newlights]
+    return newlights
+]
+
+;todo
+flip: $[affectedlights ][ ; affectx ligthson
+    print "flip"
+    overlap: intersection affectedlights lightson ; turn those off
+    extention: difference affectedlights lightson ; turn on
+        step1: new difference lightson overlap ; turn off
+        newlights: new  union step1 extention ; turn on.
+        print ["ligthson size " size newlights]
+        
+return newlights
+]
+
+
+
+solve2015_6a: $[][
+; beginning of iteration.
+it: new 0
+lightson: new []
+print ["n iterations: "nlines]
+loop 0..(nlines-2)'n [ ; -2 bc empty line & e-1 (0 based)
+    ;print n
+    line: arr\[n]
+    splitlist: (split.by: "," line)
+    ;dosomething
+    action: splitlist\[0] 
+    xmin:  to :integer splitlist\[1]
+    ymin: to :integer splitlist\[2]
+    xmax: to :integer splitlist\[3]
+    ymax: to :integer splitlist\[4]
+
+    ; build list 
+    affectedlights: new []
+
+    print [action xmin ymin xmax ymax]
+    print ["expected affected: "  (xmax +(neg xmin) +1) * (ymax +(neg  ymin) +1) ]
+    loop xmin..xmax ['x] [
+        loop ymin..ymax ['y] [
+        'affectedlights ++ @(x*1000)+y
+        ]
+    ]
+    print ["affected this iteration: " size affectedlights]
+
+    inc 'it
+    print ["iteration & lightson: " it, (size lightson)]
+    ;print affectedlights    
+    
+    case [action]
+    when? [="ON"] ->  'lightson: turnon affectedlights            ;inc 'n;print "doON"
+    when? [="OFF"] ->  'lightson: turnoff affectedlights         ;inc 'n;print "doOFF"
+    when? [="FLIP"] -> 'lightson: flip affectedlights         
+    sort 'lightson
+]
+print ["2015 6a: " size lightson ]
+]
+
+
+
+solve2015_6b:$[]
+[
+grid: array.of: [1000 1000] 0
+loop 0..(nlines-2)'n [ ; -2 bc empty line & e-1 (0 based)
+    ;print n
+    print ["iteration " n]
+    line: arr\[n]
+    splitlist: (split.by: "," line)
+    ;dosomething
+    action: splitlist\[0] 
+    xmin:  to :integer splitlist\[1]
+    ymin: to :integer splitlist\[2]
+    xmax: to :integer splitlist\[3]
+    ymax: to :integer splitlist\[4]
+    print [action xmin xmax ymin ymax]
+    ; build list 
+    case [action]
+    when? [="ON"] ->  delta: 1          ;inc 'n;print "doON"
+    when? [="OFF"] ->  delta: neg 1         ;inc 'n;print "doOFF"
+    when? [="FLIP"] -> delta: 2
+
+nextgrid: new []
+loop 0..999 'rownr ; take a row
+        [
+            print [" rownr"]
+        currline: grid\[rownr]
+            print [currline]
+        if (@rownr >= xmin)? [
+            if (@rownr <= xmax)? [
+                print" rowtochange"
+                newline: []
+                loop 0..999 'colnr [
+                    currval: currline\[@colnr]
+                    if? (@colnr > ymin)? [
+                        if? (@colnr < ymax)? [newline ++ curval] ; case for changed line
+                        else -> newline ++ curval
+                        ]
+                        else -> newline ++ curval
+                ]
+                  ;nextgrid ++ grid\[rownr] ; ; line to chnage
+
+            ]
+            else -> nextgrid ++ currline ; just keep the line
+        ]
+        else -> nextgrid ++ currline
+   ]
+grid:nextgrid
+]
+]
+
+;'listoflists ++ @[input5]print listoflists
+;row: 3
+;col: 0
+;print [listoflists\[row]\[col]]
+;print @(listoflists\[2]) \[6]
+
+print("Xmas lights")
+;solve2015_6a
+ ; \ solved in python.
+;
+grid: solve2015_6b
+
+;totsum: fold [grid] [x,y] [[fold x [a, b][a+b]] + y]
+totsum:0
+loop 0..999 'x[
+    loop 0..999 'y[
+        totsum: totsum +  grid\[y]\[x]
+    ]]
+
+print grid\[887]
+print ["2015 6b: "  totsum]

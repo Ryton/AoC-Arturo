@@ -1,0 +1,117 @@
+#!/home/ryton/.arturo/bin/arturo -e
+inputstr: read "input2015_5.txt"
+arr: drop (split.lines inputstr) 1
+print arr\1
+print size arr
+
+
+; 3 criteria for 5a
+twiceletter: $[word][
+    pattern: {/(.)\1+/}
+    return  contains? word pattern
+]
+print ["twiceletter nonon (should pass_false) "twiceletter "onono"]
+print ["twiceletter yess (should pass_true)"  twiceletter "yesss"]
+    
+noforbiddenstrings: $[word]
+[
+    patterns: [ {/[a][b]/} {/[c][d]/} {/[p][q]/} {/[x][y]/}  ] 
+    loop patterns 'pattern [
+        ;print pattern
+        (contains? word pattern)? [return false][]
+    ;It does not contain the strings ab, cd, pq, or xy, even if they are part of one of the other requirements.
+]
+return true
+]
+print ["shouldpass forbidden_true: onono: " (noforbiddenstrings "onono")]
+print ["shouldfail forbidden_fase: abracadabra: " (noforbiddenstrings "abracadabra")]
+    
+
+
+vowelcheck: $[word][
+    dict: tally word
+    vowels: "aeiou"
+    inter: (intersection (split vowels split keys dict) ) ; what vowels are present
+    (sum map (split inter) ['x][dict\[x]])>2 ; at least 3 vowels
+]
+
+print ["shouldFAIL_vowelcheck: idknot: " (vowelcheck "idknot")]
+print ["shouldpass_vowelcheck: dededede: " (vowelcheck "dededede")]
+
+;noforbiddenstrings
+;vowelcheck
+;noforbiddenstrings
+
+isnice5a: $[word][
+    ;print [" "]
+    ;print ["word: "word]
+    ;print ["vowelcheck"(vowelcheck word)]
+    ;print ["twiceletter"(twiceletter word)]
+    ;print ["noforbiddenstrings"(noforbiddenstrings  word)]
+    ;print [" combined " ((vowelcheck word) ∧  (twiceletter word) ∧ (noforbiddenstrings word))]
+    return ((vowelcheck word) ∧  (twiceletter word) ∧ (noforbiddenstrings word))
+]
+word: "abfsffd"
+print [" a nice word word: abfsffd ( should FALSE) " isnice5a word]
+word: "bbffaaa"
+print [" a nice word word: bbffaaa ( should return true) " isnice5a word]
+;amountNice: 0
+;loop arr 'word [
+;    if? nice?     inc 'amountNice 
+;]
+
+; nice 5b: 
+
+twoletterstwice: $[word][
+    pattern: {/(..)(.*)\1/}
+    return  contains? word pattern
+]
+print ["twoletterstwice nonon (should pass_true) "twoletterstwice "nonon"]
+print ["twoletterstwice  yess (should pass_false)"  twoletterstwice "yesss"]
+
+;It contains at least one letter which repeats with exactly one letter between them, like xyx, abcdefeghi (efe), or even aaa.
+oxopattern: $[word][
+    pattern: {/(.).\1/}
+    return  contains? word pattern
+]
+print ["oxopattern  noNnon (should pass_true)"  oxopattern "nonon"]
+print ["oxopattern nonon (should pass_false) "oxopattern "abrasdf"]
+
+
+isnice5b: $[word][
+    ;print [" "]
+    ;print ["word: "word]
+    ;print ["vowelcheck"(vowelcheck word)]
+    ;print ["twiceletter"(twiceletter word)]
+    ;print ["noforbiddenstrings"(noforbiddenstrings  word)]
+    ;print [" combined " ((vowelcheck word) ∧  (twiceletter word) ∧ (noforbiddenstrings word))]
+    return ((twoletterstwice word) ∧  (oxopattern word))
+]
+
+
+word: "abc"
+print [" a nice  b word: abc ( should FALSE) " isnice5b word]
+word: "nonon"
+print [" a nice b word: nonon ( should return true) " isnice5b word]
+;amountNice: 0
+;loop arr 'word [
+;    if? nice?     inc 'amountNice 
+;]
+
+counter5a: new 0
+loop.with: 'n arr 'x [
+        ;print x
+        ;print x
+        if? (isnice5a x) [inc 'counter5a][] 
+        ]
+
+counter5b: new 0
+loop.with: 'n arr 'x [
+        ;print x
+        ;print x
+        if? (isnice5b x) [inc 'counter5b][] 
+        ]
+
+print ["2015 5a: " counter5a       
+        ]
+print ["2015 5b: " counter5b ]

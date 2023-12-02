@@ -1,0 +1,31 @@
+; ./bin/arturo
+inputstr: read "input2015_3.txt" ; {::}
+
+;volume: $ xyz -> (xyz\0*xyz\1*xyz\2)
+
+arr: split.lines inputstr 
+papersize: 0
+ribbonsize:0
+loop.with: 'n arr 'line [
+    LWH:   split.by: "x" line
+    L: to :integer LWH\0
+    W: to :integer LWH\1
+    H: to :integer LWH\2
+    lwh: [L,W,H]
+    surfaces: @[L*W L*H W*H]
+    parea: (2*L* W) + (2*W * H) + (2*L * H)
+    pslack:  min surfaces
+    'papersize: papersize + parea + pslack
+    plwhcirc: @[(L+W)*2 (L+H)*2 (W+H)*2] ;
+    pvol: (L*W*H)
+    hcirc: min plwhcirc
+    'ribbonsize: ribbonsize + hcirc + pvol
+    ]
+    
+print ["2015 2a" papersize]
+print ["2015 2a" ribbonsize]
+
+
+
+
+

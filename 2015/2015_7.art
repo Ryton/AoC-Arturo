@@ -1,0 +1,79 @@
+;#!/home/ryton/.arturo/bin/arturo -e
+
+inputstr: read "input2015_7.txt"
+
+print ["bitwise operations"]
+print ["https://arturo-lang.io/documentation/library/bitwise/"]
+["shl (shift left); not, and nand,...,"]
+
+chop 'inputstr 1 
+;print inputstr 
+
+arr: split.by: ";" inputstr
+print "arr"
+;arr: split.by: "\n" inputstr
+
+;print regex? pattern
+dict: new []
+loop arr 'line [
+    ;print line
+splititems: split.by: "," line
+
+;print splititems
+keynameint: last splititems 
+keyname: to :string keynameint
+;print keyname
+
+splititems: chop splititems 1
+
+content: split.by: " " splititems
+inspect content
+newcontent: new []
+
+
+loop: content 'item [
+    print ["item: " item " content : " content]
+    inspect "A"
+    if? [equal? item "A"]['newcontent ++["and" content\[0] content\[2]]
+                                ]
+    if? [equal? item "O"] ['newcontent ++["or" content\[0] content\[2]]
+                                ]
+    if? [equal? item "N"] ['newcontent ++ ["not" content\[1]] 
+                                ]
+
+    if? [equal? item "R"] ['newcontent ++ ["shr" content\[0] content\[2]]
+                                ]
+    if? [equal? item "L"] ['newcontent ++ ["shl" content\[0] content\[2]]
+                                ]
+]
+
+;'content: 
+print ["newcontent" newcontent size newcontent]
+    ;print content
+;     print [keyname " ==> " newcontent]    
+    'dict[keyname] : [newcontent]
+]
+sort.by: values 'dict
+
+
+;loop 1..100 'iter [
+;    loop keys dict 'key [
+;        try
+;        [toevaluate: dict\[key]
+;            'dict\[key]: ~"|toevaluate|"
+;        ]
+;    ]
+;    ]
+;print dict
+
+;print keys dict
+
+;print  ["dict" dict]
+
+
+;print["last el of dict" dict\[last]]
+
+
+num2bin: $[x][to :binary x]
+;print num2bin 45162
+print ["2015 7 a: "]

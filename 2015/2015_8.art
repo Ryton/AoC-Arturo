@@ -1,0 +1,91 @@
+#!/home/ryton/.arturo/bin/arturo -e
+
+inputstr: read "input2015_8.txt"
+;inputstr: read "example2015_8.txt"
+;print inputstr
+pprint: $[varname] [
+    ; function for prettyprint. Requires string input!
+    print [~"|varname| has values |var varname|"]
+    ]
+
+arr: split.lines inputstr
+chop 'arr 
+;print size arr
+
+countdecode: $[arr][
+counter:0
+;pprint "counter"
+
+loop arr 'line [ 
+    linelen: size line
+    code: new (to :string line)
+    hexpattern: {/(\\)[x](.)(.)/}
+
+;    doubleslash: {/(\\)(\\)/}
+    doubleslash: {/[\\][\\]/}
+
+    apostr: {/(\\)["]/}
+
+    (chop 'code 1)
+    b:(drop 'code 1)
+    c2: match code  doubleslash  ; 2 sumb     1  char   
+    replace 'code  c2 "S"
+    c1:  match code  hexpattern  ; ; 4 digits 1 char, so -3 * size
+    replace 'code  c1 "H"
+    c3:  match code  apostr        ;  2 symbols 1 symb
+    replace 'code  c3  "A"
+
+    'counter + size line 
+    'counter -  size code 
+    ;print  [ linelen   c1   c2   c3 ]
+    ;print
+    ;print line
+    ;print code
+    ;print [size c1 size c2 size c3]
+    ;prints [": "((size line) - (size code))  "diff"  size line size code ]
+    ;pprint "counter"
+]
+return counter
+]
+;arr: split.by: "\n" inputstr
+
+
+countencode: $[arr][
+counter:0
+;pprint "counter"
+
+loop arr 'line [ 
+    linelen: size line
+    code: new (to :string line)
+    hexpattern: {/(\\)[x](.)(.)/}
+
+;    doubleslash: {/(\\)(\\)/}
+    slash: {/[\\]/}
+    singleapostr: {/["]/}
+    prepend 'code  "A"
+    append 'code  "A"
+    c2: match code  slash  ; 2 sumb     1  char   
+    replace 'code  c2 "SS"
+    c1:  match code  singleapostr  ; ; 4 digits 1 char, so -3 * size
+    replace 'code  c1 "SA"
+
+    'counter + (size code )
+    'counter - (size line )
+    ;print  [ linelen   c1   c2   c3 ]
+    ;print ""
+    ;print line
+    ;print code
+    ;print [size c1 size c2 size c3]
+    ;prints [": "((size line) - (size code))  "diff"  size line size code ]
+    ;pprint "counter"
+]
+return counter
+]
+;arr: split.by: "\n" inputstr
+
+
+print ["2015 8 a: " (countdecode arr)] ; 6048 too high 5568 too high. 5561
+;4961 ; 1339 ; 1339 . => answer is 1333
+
+print ["2015 8 b: " (countencode arr)] ; 2 less bc of white line in end
+

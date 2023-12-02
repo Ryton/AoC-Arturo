@@ -1,0 +1,99 @@
+#!/home/ryton/.arturo/bin/arturo -e
+; problem: https://adventofcode.com/2015/day/17
+
+; Toy example
+input:  drop split.lines read "input2015_18.txt" 1
+
+nsteps: 100
+
+print input
+
+
+; dummyinput: new [
+;                 ".#.#.#",
+;                 "...##."
+;                 "#....#"
+;                 "..#..."
+;                 "#.#..#"
+;                 "####.."
+; ]
+; nsteps:4 
+; input: dummyinput
+; grid: new @.of: [6 6] 0
+;print input
+print [size input\[0]  dec size input ]
+
+
+BuildGrid: $[input][
+;print grid
+grid: new @.of: [102 103] 0
+loop.with: 'x input 'line
+[ loop.with: 'y line 'symb[
+    ;print symb
+    ;print   [ x y ": "symb]
+    if? equal? symb '#' -> grid\[x+1]\[y+1]:  1
+  ]
+]
+
+return grid]
+
+plot: $[][loop grid 'line [  print line]]
+
+sumvicin: $[x y][
+         val: ((grid\[x-1]\[y-1]) 
+            +(grid\[x-1]\[y]) 
+            +(grid\[x-1]\[y+1])
+            + (grid\[x]\[y-1])
+                    ; skipped center.
+            + (grid\[x]\[y+1])
+
+            + (grid\[x+1]\[y-1])
+            + (grid\[x+1]\[y])
+            + (grid\[x+1]\[y+1]))
+            return val
+            ]
+
+
+
+;plot 
+solve18A:$[grid nsteps][
+
+loop 1..nsteps 'time
+    [   
+    nextgrid: new grid    
+    loop 0..dec size input  'x
+    [   loop 0.. dec (size input\[0]) 'y [
+            ;print symb
+            ;print   [ x y ": "symb]
+            val: sumvicin x+1 y+1        
+            currstate: grid\[x+1]\[y+1]
+            ;print [currstate val]
+            if (and? (currstate=0 ) ((val = 3))) [;print "turnon"
+                                                      nextgrid\[x+1]\[y+1]: 1]
+            if (currstate=1) [if (or? (val <2) (val>3)) [;print "turnoff"
+                                                nextgrid\[x+1]\[y+1]: 0 ]]
+            
+        ]
+    ]
+    grid: new nextgrid
+    print ["time " time ": "  sum flatten grid]
+    ;plot
+]
+
+;plot
+print ["18a: "sum flatten grid] ; NOT 3927 too high, not 3884 -> 3849
+]
+
+
+
+grid: BuildGrid input
+print ["time " 0 ": "  sum flatten grid]
+solve18A grid 100
+ 
+pprint: $[varname] [
+    ; function for prettyprint. Requires string input!
+    print [~"|varname| has value(s): |var varname|"]
+    ]
+
+
+

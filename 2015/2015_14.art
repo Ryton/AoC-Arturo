@@ -1,0 +1,109 @@
+#!/home/ryton/.arturo/bin/arturo -e
+
+; inputstr: read.json "input2015_12.txt"
+inputstr: read "input2015_14.txt" ; for B
+;inspect inputstr
+print inputstr
+animals: #[ 
+V: [8,8, 53]
+B: [13 4  49]
+R: [20 7 132] 
+C: [12 4 43]
+D: [9 5 38]
+Z: [10 4 37] ;dasher
+Q: [3 37 76]
+P: [9 12 97]
+E: [31,1, 36] ;dancer
+]
+distanceat2503: [] 
+listofpacinglists: []
+loop keys animals 'animal [
+    pacinglist: new []
+    print ["animal: " animal]
+    speed: get animals\[animal] 0
+    duration: get animals\[animal] 1
+    rest: get (animals\[animal]) 2
+    print ["3" speed, duration, rest] 
+    distance: 0
+    'pacinglist ++ distance
+    
+    do.times: 7000 [
+        do.times: duration  [
+                'distance: distance + speed
+                'pacinglist ++ distance
+                ]
+            do.times: rest ['pacinglist ++ distance]
+            ]
+    ;print [ animal size pacinglist]
+    ;print pacinglist
+        ;2503 minimum
+        ;
+    finaldistance: (get pacinglist 2503)
+    ;print ["distance for:" animal  inspect finaldistance]
+    'distanceat2503 ++  finaldistance
+    ;var animal new pacinglist
+    'listofpacinglists ++ @[ slice pacinglist 0 2503]
+        ]
+
+print ["2015 14 a: " max distanceat2503] ; 2 less bc of white line in end
+print [size listofpacinglists size first listofpacinglists]
+
+transpose: function [a][
+    X: size a
+    Y: size first a
+    result: array.of: @[Y X] 0
+
+    loop 0..X-1 'i [
+        loop 0..Y-1 'j [
+            result\[j]\[i]: a\[i]\[j]
+        ]
+    ]
+    return result
+]
+timesvsanimal: transpose listofpacinglists
+
+print [size listofpacinglists size first listofpacinglists]
+print [size timesvsanimal size first timesvsanimal]
+totalscore: new []
+time: 0
+scoring: [0 0 0   0 0 0   0 0 0] 
+;print scoring
+loop 0..2503 'time
+[    
+    tally: (timesvsanimal\[time])  
+    firstplace: max(tally)
+    
+    currscore: new []
+    loop 0..8 'animal [
+
+
+    if? (tally\[animal]=firstplace) -> point: 1
+    else                            -> point:0
+    'currscore ++ point
+    scoring\[animal]: scoring\[animal] + point
+    ]
+   ;print currscore
+    'totalscore ++ currscore
+]   
+
+;totalscore: transpose totalscore
+;print totalscore ; array.of: @[Y X] 0
+;print  couple  keys animals scoring 
+;print timesvsanimal\2503
+print ["2015 14 b: " dec max scoring ] ; 2 less bc of white line in end
+;2540 is too high??
+
+;inspect.muted listofpacinglists
+;print size listofpacinglists
+    ;distance2503 << distance\[2503]
+
+
+
+pprint: $[varname] [
+    ; function for prettyprint. Requires string input!
+    print [~"|varname| has value(s): |var varname|"]
+    ]
+
+
+
+
