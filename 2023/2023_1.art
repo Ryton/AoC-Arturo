@@ -36,6 +36,7 @@ solve_A:$[parsed]
         nrlist: (split nrstr)
         nr: ((to :integer (first nrlist))*10)+ ( to :integer (last nrlist))
         'summed: summed + nr
+        
         ]
         else []
     ]
@@ -51,8 +52,8 @@ solve_B:$[parsed]
 
 
         loop inputstr 'word [
-        print word 
-        if? ((size word) > 1) [
+        origword: word 
+        if? ((size word) > 0) [
                 loop keys digtdict 'strnumber [
                 pattern:  regexdict\[strnumber]
                 ;print pattern
@@ -63,7 +64,7 @@ solve_B:$[parsed]
         nrstr: replace word pattern ""
         nrlist: (split nrstr)
         nr: ((to :integer (first nrlist))*10)+ ( to :integer (last nrlist))
-        print  nr
+        print  ~"|origword| -> |nr|"
         'summed: summed + nr
         ]
         else []
