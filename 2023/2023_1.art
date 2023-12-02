@@ -1,0 +1,100 @@
+#!/home/grimalkin/.arturo/bin/arturo -e
+;==========================================
+; Advent of Code solution 
+;
+; @file: tools/<year>_<day>.art (or default)
+; @author: Mixomycetes
+;==========================================
+
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/Grim/AoC/2023/2023_1.art'
+[year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 ;print [day,year]
+print "reading input:"
+
+demoinput:["two1nine"
+"eightwothree"
+"abcone2threexyz"
+"twone3four"
+"4nineeightseven2"
+"zoneight234"
+"7pqrstsixteen"]
+
+inputstr: split.lines demoinput
+inputstr: read.lines ~"input|year||day|.txt"; for B
+;print inputstr
+
+; demoword: "threeblztlfgltlznxv9cqsjfnmgftnmscjmxpmfkleight"
+
+
+
+solve_A:$[parsed]
+ [
+    summed: 0
+    loop inputstr 'word [
+        if? ((size word) > 1) [
+        pattern: {/[a-z]*/}
+        nrstr: replace word pattern ""
+        nrlist: (split nrstr)
+        nr: ((to :integer (first nrlist))*10)+ ( to :integer (last nrlist))
+        'summed: summed + nr
+        ]
+        else []
+    ]
+    return summed
+ ]
+
+solve_B:$[parsed]
+ [
+    summed:0
+    digtdict: #[ "one":"one1one", "two":"two2two", "three":"three3three", "four":"four4four", "five":"five5five", "six":"six6six", "seven":"seven7seven", "eight":"eight8eight","nine":"nine9nine"]
+    ; to fix https://www.reddit.com/r/adventofcode/comments/1884fpl/2023_day_1for_those_who_stuck_on_part_2/?rdt=50560
+    regexdict: #[ "one":{/one*/}, "two":{/two*/}, "three": {/three*/}, "four":{/four*/}, "five":{/five*/}, "six":{/six*/}, "seven":{/seven*/}, "eight":{/eight*/},"nine":{/nine*/}]
+
+
+        loop inputstr 'word [
+        print word 
+        if? ((size word) > 1) [
+                loop keys digtdict 'strnumber [
+                pattern:  regexdict\[strnumber]
+                ;print pattern
+                'word: replace word pattern (digtdict\[strnumber])
+                ]
+        
+        pattern: {/[a-z]*/}
+        nrstr: replace word pattern ""
+        nrlist: (split nrstr)
+        nr: ((to :integer (first nrlist))*10)+ ( to :integer (last nrlist))
+        print  nr
+        'summed: summed + nr
+        ]
+        else []
+    ]
+    return summed
+
+ ]
+
+
+; solve_B:$[input][
+;     answerB:  input
+;     return answerB
+; ]
+
+
+; start:now
+; pause 1000  
+
+ print [~"|year| |day| a: " (solve_A inputstr)] ; 2 less bc of white line in end
+ print [~"|year| |day| b: " (solve_B inputstr)] ; 2 less bc of white line in end
+
+; for b:
+ ; too low 53999:
+ ; too low 54074
+; to high 54561
+ ; too high 
+; start: now
+; pause 2000  
+; stop: now
+
+; print [ (stop\["hour"]- start\["hour"])*3600+(stop\["minute"]- start\["minute"])*60+(stop\["second"]-start\["second"]) ] 
+
+; print [(stop\["nanosecond"]-start\["nanosecond"])/1.E6 " seconds"]
+; ; 
