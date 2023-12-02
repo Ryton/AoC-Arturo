@@ -8,233 +8,94 @@
 
 FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/Grim/AoC/2023/2023_1.art'
 [year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 ;print [day,year]
-print "reading input:"
+;print "reading input..."
 
 posscol: ["r" "g" "b"]
 refdict: #[ "r":12, "g":13,"b":14]
 
-demoinput: {Game 1 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green}
+demoinput: {Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green}
  
-
 ; inputstr: read.lines ~"input|year||day|.txt"; for B
 ; print demoinput
-inputstr: chop read~"input|year||day|.txt"; for B
- 
+inputstr: chop read ~"input|year||day|.txt"; for B
+
 ; print inputstr
 
-solve_A: $[inputstr][
-ll: split.lines inputstr
- patterns: [ {/red/} {/green/} {/blue/} {/Game/}]
- newval: ["r"  "g" "b" "s"]
+parse: $[inputstr][
+    dictlist:[]
+    ll: split.lines inputstr
+    ;print [~"|size ll| lines read"]
+    patterns: [ {/red/} {/green/} {/blue/} {/Game/}]
+    newval: ["r"  "g" "b" "s"]
+    todict: $[x,y][adict\[x]:adict\[x] + to :integer y]
+    ; structure: experiment (one line) => samples => onedraw => pairs)
+    loop.with: 'i ll 'line [ ; line == one experiment.
+            line: replace line (patterns\[0]) (newval\[0])  ; red to r
+            line: replace line (patterns\[1]) (newval\[1])  ; green to g
+            line: replace line (patterns\[2]) (newval\[2])  ; blue to b
+            line: replace line (patterns\[3]) (newval\[3])  ; Game to s
+            exp: split.by: ":" line
+            expId: to :integer last split.by: " " exp\0
+            ;print ~"exp_id |expId|:"
+            samples: split.by: ";" exp\1
+            ;inspect samples
+            adict: #["r":0 "g":0 "b":0 ]
 
-shortlist:[]
-possibles: []
-todict: $[x,y][adict\[x]:adict\[x] + to :integer y]
-
-
-; structure: experiment (one line) => samples => onedraw => pairs)
- loop.with: 'i ll 'line [ ;line: ll\0 ; juts one for now , later loop!
-
-            
-        line: replace line (patterns\[0]) (newval\[0])
-        line: replace line (patterns\[1]) (newval\[1])
-        line: replace line (patterns\[2]) (newval\[2])
-        line: replace line (patterns\[3]) (newval\[3])
-
-        ;print line
-        exp: split.by: ":" line
-        
-        expId: to :integer last split.by: " " exp\0
-        ;print ~"exp_id |expId|:"
-
-        samples: split.by: ";" exp\1
-        ;inspect samples
-        adict: #["r":0 "g":0 "b":0 ]
-
-        loop samples 'onedraw [
-        pairs: split.by:"," onedraw
-        ;print "pairs:"
-        ;inspect pairs      
-            loop pairs 'pair [
-                amountcolor: split.by:" " strip  pair
-                amount: to :integer  amountcolor\[0] 
-                color: amountcolor\[1]
-                ;print color
-                adict\[(color)]: (max @[(adict\[(color)])  (to :integer amount)])
-
+            loop samples 'onedraw [   
+                pairs: split.by:"," onedraw
+                ;print "pairs:"
+                ;inspect pairs      
+                loop pairs 'pair [
+                    amountcolor: split.by:" " strip  pair
+                    amount: to :integer  amountcolor\[0] 
+                    color: amountcolor\[1]
+                    ;print color
+                    adict\[(color)]: (max @[(adict\[(color)])  (to :integer amount)])
+                ]
             ]
-        ]
+            'dictlist ++ adict
+    ]
+    return dictlist
+]
 
-    ;print adict
-  ;12 red cubes, 13 green cubes, and 14 blue cubes?
+    ;print dictlist
+solve_A: $[dictlist][
+
+
+    possibles: []
+    loop.with: 'expId dictlist 'adict [
+        ;print adict
+    ;12 red cubes, 13 green cubes, and 14 blue cubes?
+        
+        ;print refdict
+        check1: (refdict\["r"] >= adict\["r"])
+        check2: ( refdict\["g"] >= adict\["g"])
+        check3: ( refdict\["b"] >= adict\["b"])
+        check:  (all? @[check1 check2 check3])
+        
+        if? check [ ;print [~"added |expId|"]
+                'possibles ++ (expId+1) 
+                
+    ]
     
-    ;print refdict
-    check1: (refdict\["r"] >= adict\["r"])
-    check2: ( refdict\["g"] >= adict\["g"])
-    check3: ( refdict\["b"] >= adict\["b"])
-    check:  (all? @[check1 check2 check3])
-
-    ;print [expId ":" adict\["r"] adict\["g"] adict\["b"] " => "  check ]
-
-    if? check [;print ["added " expId]
-             'possibles ++ expId ]
+]
+return (sum possibles) ; 4298,3631 too high.
+]
 
 
-  ]
-(sum possibles) ; 4298,3631 too high.
+solve_B: $[dictlist][
+
+    powers: []
+    loop dictlist 'adict [
+                power: adict\["r"]*adict\["g"] * adict\["b"]
+                'powers ++  power
+    ]
+    return (sum powers ) ; 4298,3631 too high.
 ]
 
 
 
-solve_B: $[inputstr][
-ll: split.lines inputstr
- patterns: [ {/red/} {/green/} {/blue/} {/Game/}]
- newval: ["r"  "g" "b" "s"]
-
-shortlist:[]
-powers: []
-todict: $[x,y][adict\[x]:adict\[x] + to :integer y]
-
-
-; structure: experiment (one line) => samples => onedraw => pairs)
- loop.with: 'i ll 'line [ ;line: ll\0 ; juts one for now , later loop!
-
-            
-        line: replace line (patterns\[0]) (newval\[0])
-        line: replace line (patterns\[1]) (newval\[1])
-        line: replace line (patterns\[2]) (newval\[2])
-        line: replace line (patterns\[3]) (newval\[3])
-
-        ;print line
-        exp: split.by: ":" line
-        
-        expId: to :integer last split.by: " " exp\0
-        ;print ~"exp_id |expId|:"
-
-        samples: split.by: ";" exp\1
-        ;inspect samples
-        adict: #["r":0 "g":0 "b":0 ]
-
-        loop samples 'onedraw [
-        pairs: split.by:"," onedraw
-        ;print "pairs:"
-        ;inspect pairs      
-            loop pairs 'pair [
-                amountcolor: split.by:" " strip  pair
-                amount: to :integer  amountcolor\[0] 
-                color: amountcolor\[1]
-                ;print color
-                adict\[(color)]: (max @[(adict\[(color)])  (to :integer amount)])
-
-            ]
-        ]
-
-    ;print adict
-  ;12 red cubes, 13 green cubes, and 14 blue cubes?
-    
-    ;print refdict
-
-    ;print [expId ":" adict\["r"] adict\["g"] adict\["b"] " => "  check ]
-power: adict\["r"]*adict\["g"] * adict\["b"]
-    
-             'powers ++  power
-
-
-  ]
-return (sum powers ) ; 4298,3631 too high.
-]
-  ; if 
-  
- ;  posssum: 'posssum + i
-
-
-    ;print adict
- ;shortlist << line
-;]
-
-
-
-; only 12 red cubes, 13 green cubes, and 14 blue cubes?
-
-
-; inputstr: split.lines demoinput
-
-; ;print inputstr
-
-; ; demoword: "threeblztlfgltlznxv9cqsjfnmgftnmscjmxpmfkleight"
-
-
-
-; solve_A:$[parsed]
-;  [
-;     summed: 
-;     loop inputstr 'word [
-;         if? ((size word) > 1) [
-;         pattern: {/[a-z]*/}
-;         nrstr: replace word pattern ""
-;         nrlist: (split nrstr)
-;         nr: ((to :integer (first nrlist))*10)+ ( to :integer (last nrlist))
-;         'summed: summed + nr
-        
-;         ]
-;         else []
-;     ]
-;     return summed
-;  ]
-
-; solve_B:$[parsed]
-;  [
-;     summed:0
-;     digtdict: #[ "one":"one1one", "two":"two2two", "three":"three3three", "four":"four4four", "five":"five5five", "six":"six6six", "seven":"seven7seven", "eight":"eight8eight","nine":"nine9nine"]
-;     ; to fix https://www.reddit.com/r/adventofcode/comments/1884fpl/2023_day_1for_those_who_stuck_on_part_2/?rdt=50560
-;     regexdict: #[ "one":{/one*/}, "two":{/two*/}, "three": {/three*/}, "four":{/four*/}, "five":{/five*/}, "six":{/six*/}, "seven":{/seven*/}, "eight":{/eight*/},"nine":{/nine*/}]
-
-
-;         loop inputstr 'word [
-;         origword: word 
-;         if? ((size word) > 0) [
-;                 loop keys digtdict 'strnumber [
-;                 pattern:  regexdict\[strnumber]
-;                 ;print pattern
-;                 'word: replace word pattern (digtdict\[strnumber])
-;                 ]
-        
-;         pattern: {/[a-z]*/}
-;         nrstr: replace word pattern ""
-;         nrlist: (split nrstr)
-;         nr: ((to :integer (first nrlist))*10)+ ( to :integer (last nrlist))
-;         print  ~"|origword| -> |nr|"
-;         'summed: summed + nr
-;         ]
-;         else []
-;     ]
-;     return summed
-
-;  ]
-
-
-; ; solve_B:$[input][
-; ;     answerB:  input
-; ;     return answerB
-; ; ]
-
-
-; ; start:now
-; ; pause 1000  
-
-  print [~"|year| |day| a: " (solve_A inputstr)] ; 2 less bc of white line in end
-  print [~"|year| |day| b: " (solve_B inputstr)] ; 2 less bc of white line in end
-
-; ; for b:
-;  ; too low 53999:
-;  ; too low 54074
-; ; to high 54561
-;  ; too high 
-; ; start: now
-; ; pause 2000  
-; ; stop: now
-
-; ; print [ (stop\["hour"]- start\["hour"])*3600+(stop\["minute"]- start\["minute"])*60+(stop\["second"]-start\["second"]) ] 
-
-; ; print [(stop\["nanosecond"]-start\["nanosecond"])/1.E6 " seconds"]
-; ; ; 
+dictlist: parse inputstr
+;print(dictlist)
+ print [~"|year| |day| a: " (solve_A dictlist)] ; 2 less bc of white line in end
+  print [~"|year| |day| b: " (solve_B dictlist)] ; 2 less bc of white line in end
