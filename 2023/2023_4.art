@@ -1,0 +1,107 @@
+#!/home/grimalkin/.arturo/bin/arturo -e
+;==========================================
+; Advent of Code solution 
+;
+; @file: tools/<year>_<day>.art (or default)
+; @author: Mixomycetes
+;==========================================
+
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/Grim/AoC/2023/2023_1.art'
+[year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 ;print [day,year]
+;year: 2023
+;day: 4
+inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+
+demoinput: [
+"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53"
+"Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19"
+"Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1"
+"Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83"
+"Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36"
+"Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11" ]
+ 
+;inputstr: demoinput
+
+print inputstr
+
+solveA: $[inputstr] [
+totscore: 0
+loop inputstr 'line [
+    pattern: {/\s+/}
+    line: replace line pattern " "
+    [p1,p2]: split.by: ": " line 
+    [winning,own]:  (split.by: " | " strip  p2)
+    expID: to :integer last (split.by: " " p1)
+    intW: map (split.by: " " winning) 'strInt [to :integer  strInt ]
+    intO: map (split.by: " " own) 'strInt [to :integer  strInt]
+    count: 0
+    loop intO 'nr   [
+            if (in? nr intW) [inc 'count]
+    ]
+
+    score: 0
+    if (count >0) -> score: pow 2 (count - 1)
+    print ["score:" score ]   
+    totscore: totscore + score
+]
+return totscore
+]
+
+
+
+solveB: $[inputstr] [
+cardlist: #[]
+it: 1
+loop inputstr 'line [
+    
+    cardlist\[it]: 1
+    'it inc 
+]
+print cardlist
+
+loop.with: 'it (chop inputstr) 'line [
+    pattern: {/\s+/}
+    line: replace line pattern " "
+    [p1,p2]: split.by: ": " line 
+
+    [winning,own]:  (split.by: " | " strip  p2)
+    expID: to :integer last (split.by: " " p1)
+    intW: map (split.by: " " winning) 'strInt [to :integer  strInt ]
+    intO: map (split.by: " " own) 'strInt [to :integer  strInt]
+
+    count: 0
+    loop intO 'nr   [
+            if (in? nr intW) [inc 'count]
+    ]
+    ;print [ "count: " count]
+    curramount: cardlist\[expID]
+    print ["curramount of card" expID ":" curramount]
+    print ("won: "count)
+    if (count >0) [
+        loop range expID+1 expID+count 'wonID [
+            print wonID
+            if (wonID < size  inputstr) [
+            print cardlist\[wonID]
+            cardlist\[wonID]:  (cardlist\[wonID]) + curramount]
+        ]
+        ]
+
+
+]
+print ["total cards: " sum values cardlist]
+return sum values cardlist
+]
+
+
+t0: benchmark.get [
+
+]
+t1: benchmark.get [
+
+ print [~"|year| |day| a: " solveA inputstr] 
+ ] 
+t2: benchmark.get  [
+ print [~"|year| |day| b: " (solveB inputstr)] 
+]
+
+print(~"Time to parse:  \n |year|\\|day|parse) |t0| \n Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
