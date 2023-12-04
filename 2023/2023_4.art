@@ -8,8 +8,9 @@
 
 FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/Grim/AoC/2023/2023_1.art'
 [year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 ;print [day,year]
-;year: 2023
-;day: 4
+[year,day]: [2023,4]
+
+; do "../helperfiles/GetAoCData.art"  ; this fetches the inputfile and stores it to disk.
 inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
 
 demoinput: [
@@ -20,9 +21,10 @@ demoinput: [
 "Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36"
 "Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11" ]
  
+;; switch between actual input and demo
 ;inputstr: demoinput
 
-print inputstr
+;print inputstr
 
 solveA: $[inputstr] [
 totscore: 0
@@ -41,7 +43,7 @@ loop inputstr 'line [
 
     score: 0
     if (count >0) -> score: pow 2 (count - 1)
-    print ["score:" score ]   
+    ;print ["score:" score ]   
     totscore: totscore + score
 ]
 return totscore
@@ -57,7 +59,7 @@ loop inputstr 'line [
     cardlist\[it]: 1
     'it inc 
 ]
-print cardlist
+;print cardlist
 
 loop.with: 'it (chop inputstr) 'line [
     pattern: {/\s+/}
@@ -73,22 +75,21 @@ loop.with: 'it (chop inputstr) 'line [
     loop intO 'nr   [
             if (in? nr intW) [inc 'count]
     ]
-    ;print [ "count: " count]
     curramount: cardlist\[expID]
-    print ["curramount of card" expID ":" curramount]
-    print ("won: "count)
+    ;print ["curramount of card" expID ":" curramount]
+    ;print ("won: "count)
     if (count >0) [
         loop range expID+1 expID+count 'wonID [
-            print wonID
+            ;print wonID
             if (wonID < size  inputstr) [
-            print cardlist\[wonID]
+            ;print cardlist\[wonID]
             cardlist\[wonID]:  (cardlist\[wonID]) + curramount]
         ]
         ]
 
 
 ]
-print ["total cards: " sum values cardlist]
+;print ["total cards: " sum values cardlist]
 return sum values cardlist
 ]
 
