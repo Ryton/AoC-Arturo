@@ -6,9 +6,6 @@
 ; @author: Mixomycetes
 ;==========================================
 
-FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/Grim/AoC/2023/2023_1.art'
-[year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 ;print [day,year]
-
 
 demoinput: [
 "467..114.."
@@ -30,6 +27,91 @@ demoinput: [
 year: 2023
 day: 3
  inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+ 
+ ; toy example
+; inputstr: demoinput
+
+
+ inputstr: @[repeat "." size first inputstr] ++ inputstr ++ @[repeat "." size first inputstr]
+
+
+print inputstr
+
+solve3B: $[inputstr]
+[
+gearprod: []
+gearnrslist: []
+
+ loop 2..((size inputstr)-2) 'linenr 
+ [ ;...
+    ;print(linenr)
+    top: inputstr\[linenr-1]
+    mid: inputstr\[linenr]
+    bot: inputstr\[linenr+1]
+    matches: match.bounds mid {/\*/}
+    gearpos: map matches 'm [m]\0
+    topnummatch: (match.full top {/\d+/})
+    midnummatch: (match.full mid {/\d+/})
+    botnummatch: (match.full bot {/\d+/})
+
+     loop gearpos 'apos [
+        gearnrs: []
+        count: 0
+             loop topnummatch\matches 'nrmatch [
+                s: apos\0
+                
+                nrrange: @(nrmatch\1)
+                val: to :integer (nrmatch\0)
+    
+     
+                 if any? @[(in? s nrrange) (in? s+1 nrrange) (in? s-1 nrrange) ] [
+                    
+                            append 'gearnrs  val
+                            print ["MATCH UP: " val "at line " linenr "pos " s]
+                            'count: count+1 ]
+
+             ]
+             loop midnummatch\matches 'nrmatch [
+                s: apos\0
+                nrrange: @(nrmatch\1)
+                val: to :integer (nrmatch\0)
+             if  any? @[(in? s nrrange) (in? s+1 nrrange) (in? s-1 nrrange) ] [
+                append 'gearnrs val 
+                print ["MATCH MID: " val "at line " linenr "pos " s]
+                'count: count+1 ]
+             ]
+             loop botnummatch\matches 'nrmatch [
+                s: apos\0
+                nrrange: @(nrmatch\1)
+                val: to :integer (nrmatch\0)
+             if any? @[(in? s nrrange) (in? s+1 nrrange) (in? s-1 nrrange) ][
+                 append 'gearnrs val 
+                 print ["MATCH BOT: " val "at line " linenr "pos " s]
+                 'count: count+1 ]
+                 
+             ]
+
+
+        if (count=2) [print ["gearnrs: " gearnrs ]
+                                append 'gearprod  product gearnrs
+                                append 'gearnrslist @[gearnrs] ]
+
+     ]
+
+
+    ;  curr answer => wrong . 19417165 
+    ; next answer 82301120
+
+
+ ]
+
+print["gearprod: " gearprod]
+print["gearnrslist: " gearnrslist]
+print["3b (sum gearprod): " sum gearprod]
+
+return (sum gearprod)
+]
+
 
 ;print inputstr
 
@@ -48,7 +130,8 @@ t1: benchmark.get [
  
  ] 
 t2: benchmark.get  [
-;print [~"|year| |day| b: " (solveB mask )] ; 2 less bc of white line in end
+ans3b: solve3B inputstr
+print [~"|year| |day| b: " (ans3b)] ; 2 less bc of white line in end
 ]
 
 print(~"Time to parse:  \n |year|\\|day|parse) |t0| \n Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
