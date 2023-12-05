@@ -29,11 +29,11 @@ demoinput: [
 ;do "../helperfiles/GetAoCData.art"
 year: 2023
 day: 3
-; inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+ inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
 ;inputstr: chop read.lines data
 
 ;; toy demo example
-inputstr: demoinput
+;nputstr: demoinput
 
 
 ;pattern: {/[^0-9.]/}

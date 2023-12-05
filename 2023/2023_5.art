@@ -1,0 +1,184 @@
+#!/home/grimalkin/.arturo/bin/arturo -e
+;==========================================
+; Advent of Code solution 
+;
+; @file: tools/<year>_<day>.art (or default)
+; @author: Mixomycetes
+;==========================================
+
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/Grim/AoC/2023/2023_1.art'
+[year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 ;print [day,year]
+
+do "../helperfiles/GetAoCData.art"  ; this fetches the inputfile and stores it to disk.
+
+;; real example
+inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+
+;; toy example
+inputstr: chop read.lines ~"../data/demoinput.txt"
+
+
+seeds: (split.by: " " strip last (split.by: ":" inputstr\0)) | map  'x -> to :integer x
+
+bruteforce_expandseeds: $[seeds] [
+            seeds2: []            
+       
+            loop.with: 'i seeds [start len] [
+                        loop (start..start+len-1) 'i [ 'seeds2 ++ i]
+                        ]
+
+            return  seeds2
+            
+ ]
+ 
+
+
+it: neg 1
+newlist: []
+transfermap:#[]
+order: "osfwlthp"
+
+parse: $[inputstr][
+inputstr: drop inputstr ; remove seeds line
+
+loop.with: 'i  inputstr 'lines [
+    if? not? zero? size(lines)[
+        if? (in? lines\[0] "0123456789") [
+            strlist: split.by: " " lines
+            'newlist ++ @[map strlist 'l -> to :integer l]
+            ]
+        else [        
+             pos: order\[it]
+
+            if? not? zero? size newlist [
+                    transfermap\[pos]: newlist
+
+             ] 
+             'it: it+1
+             'newlist: []
+            ]
+
+        ]
+]
+transfermap\["p"]: newlist
+return transfermap
+]
+
+
+calcnext: $[val tripletlist][
+    
+loop tripletlist [L] [
+    if between? val (L\1) (L\1 +(L\2)) [ return (val+ (L\0) -L\1)]      ]
+return val  ; if not exited earlier
+]
+
+calcprev: $[val tripletlist][
+
+loop tripletlist [L] [
+    if between? val (L\0) (L\0 +(L\2)) [ return (val+ (L\1) -L\0)]
+    ]
+    return val ; if not exited earlier
+]
+
+solveA: $[seeds transfermap][
+ seeds  | map 's [ 
+            s   | calcnext transfermap\["o"]  
+                | calcnext transfermap\["s"]  
+                | calcnext transfermap\["f"]  
+                | calcnext transfermap\["w"]  
+                | calcnext transfermap\["l"]  
+                | calcnext transfermap\["t"]  
+                | calcnext transfermap\["p"]  
+         ]
+        | min
+]
+
+
+ expandseeds: $[seeds] [
+            seeds2: []            
+            loop.with: 'i seeds [start len] [
+                        loop (start..start+len-1) 'i [ 'seeds2 ++ i]
+                        ]
+            return  seeds2
+            
+ ]
+
+
+;; work in progress still!
+solveBwiterations: $[transfermap,order,initpoints,nupdowns][
+    currpoints: initpoints
+    a: @(1..nupdowns)
+    print a 
+    loop a 'curr [    
+                if? even? curr%2 [ 
+                        print ["down" size initpoints]
+                            currpoints: currpoints  | map 's [ 
+                                                s   | calcprev transfermap\["p"]  
+                                                    | calcprev transfermap\["t"]  
+                                                    | calcprev transfermap\["l"]  
+                                                    | calcprev transfermap\["w"]  
+                                                    | calcprev transfermap\["f"]  
+                                                    | calcprev transfermap\["s"]  
+                                                    | calcprev transfermap\["o"]  
+                            print currpoints
+                    ]
+                    ]
+                else [
+                    print ["up: " size initpoints]               
+                    currpoints: currpoints  | map 's [ 
+                                        s   | calcnext transfermap\["o"]  
+                                            | calcnext transfermap\["s"]  
+                                            | calcnext transfermap\["f"]  
+                                            | calcnext transfermap\["w"]  
+                                            | calcnext transfermap\["l"]  
+                                            | calcnext transfermap\["t"]  
+                                            | calcnext transfermap\["p"]  
+                    print currpoints
+                ]
+                ]
+]
+return min currpoints
+]
+nupdowns: 5
+initpoints: [42]
+;solveBwiterations transfermap order initpoints nupdowns
+
+
+BrutesolveB: $[seeds transfermap][
+ seeds2:  reverse expandseeds seeds 
+ print [ "seedlist ready, length: " size seeds2]
+currmin: 9999999999
+loop seeds2 's [
+    ;'startto [ 
+    ;inspect startto
+    ;loop  (startto) 's [
+            newval: s   | 
+                    calcnext transfermap\["o"]  
+                | calcnext transfermap\["s"]  
+                | calcnext transfermap\["f"]  
+                | calcnext transfermap\["w"]  
+                | calcnext transfermap\["l"]  
+                | calcnext transfermap\["t"]  
+                | calcnext transfermap\["p"]  
+         if (greater? currmin newval) [ ;print newval
+                                        'currmin: newval] 
+                                        ]
+ return currmin       
+]
+
+ t0: benchmark.get [
+transfermap: parse inputstr
+ ]
+
+ print[ "transfermap:" transfermap]
+ t1: benchmark.get [
+
+  print [~"|year| |day| a: " solveA seeds transfermap] 
+  ] 
+ t2: benchmark.get  [
+  print [~"|year| |day| b: " BrutesolveB seeds transfermap]
+ 
+ ; print [ ( solveBwiterations seeds transfermap order initpoints ndownups)] 
+ ]
+
+print(~"Time to parse:  \n |year|\\|day|parse) |t0| \n Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
