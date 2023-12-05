@@ -43,36 +43,36 @@ day: 3
 
 print inputstr
 
-
+parsemask: $[inputstr][mask: [] loop.with: 'x (inputstr) 'line [ loop.with: 'y (split line) 'char [ if? (in? char  ".0123456789")  [ ] else [ loop @[(x-1) (x+0) (x+1)] 'xx [ loop @[(y-1) (y+0) (y+1)] 'yy [ 'mask ++ @[@[xx yy]]] ]]]]    return unique mask];
  
-parsemask: $[inputstr][
-    mask: []
+; parsemask: $[inputstr][
+;     mask: []
     
-    loop.with: 'x (inputstr) 'line [
+;     loop.with: 'x (inputstr) 'line [
         
-        ;print line
+;         ;print line
         
-        loop.with: 'y (split line) 'char [
+;         loop.with: 'y (split line) 'char [
             
-            ;print [x ", "y "," line]
-            ;ditgitlistwdot: (split ".0123456789")
-            if? (in? char  ".0123456789")  [ ]; ignore
-            else [
+;             ;print [x ", "y "," line]
+;             ;ditgitlistwdot: (split ".0123456789")
+;             if? (in? char  ".0123456789")  [ ]; ignore
+;             else [
  
-                loop @[(x-1) (x+0) (x+1)] 'xx [
-                    loop @[(y-1) (y+0) (y+1)] 'yy [
-                    ;print [xx ";" yy]
-                    'mask ++ @[@[xx yy]]
+;                 loop @[(x-1) (x+0) (x+1)] 'xx [
+;                     loop @[(y-1) (y+0) (y+1)] 'yy [
+;                     ;print [xx ";" yy]
+;                     'mask ++ @[@[xx yy]]
                     
-                ] ]
-                ;print ["added" x","y]
-  ]
+;                 ] ]
+;                 ;print ["added" x","y]
+;   ]
   
-  ]
-  ;print unique mask
-    ]
-    return unique mask
-]
+;   ]
+;   ;print unique mask
+;     ]
+;     return unique mask
+; ]
 
 
  
@@ -105,6 +105,7 @@ parsestarmask: $[inputstr][
     ]
 
 occurences: tally mask 
+
 starmask: []
 loop keys occurences 'pair [
     print [pair occurences\[pair]]
@@ -227,9 +228,8 @@ print ["mask built"]
 ]
 t1: benchmark.get [
 
- print [~"|year| |day| a: " solveA mask inputstr] ; 474678, 505766 too low   X  88390 505766  552395 507255  x -> too low? 474678 505766   => way too low . 153721 516573 x  156050 514347
- ; untested 156050    530105  ; 521524    ; 532331
- ; 521524 x  532331
+; print [~"|year| |day| a: " solveA mask inputstr] ; 474678, 505766 too low   X  88390 505766  552395 507255  x -> too low? 474678 505766   => way too low . 153721 516573 x  156050 514347
+ 
  ] 
 t2: benchmark.get  [
  print [~"|year| |day| b: " (solveB mask )] ; 2 less bc of white line in end
