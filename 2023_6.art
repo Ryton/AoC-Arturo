@@ -1,0 +1,97 @@
+#!/home/grimalkin/.arturo/bin/arturo -e
+;==========================================
+; Advent of Code solution 
+;
+; @file: tools/<year>_<day>.art (or default)
+; @author: Mixomycetes
+;==========================================
+
+
+demoinput: [
+
+]
+; actual inject example here (into inptustr)
+do "../helperfiles/GetAoCData.art"
+year: 2023
+day: 6
+ inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+ 
+nOpts: $[T D]
+[
+    
+;; d = t*s 
+;T = s + d/s  => d = Ts -s*s
+
+;(s <t) 
+
+; D -d =0 is edge => find roots for D-Ts -s*s = 0 
+;; T = s + d/s    => ss - Ts + d = 0 (optimum)
+
+; d (= s*T)  = T*s + d/s   => d-D =0 =>  - Tss -D s + s*T  == 0       
+; d-D = 0 = - s*s + Ts -D   
+; zeros from d-D (> 0) => (-s*s + Ts -D) =0
+; a = - 1
+; b = T
+; c = -D
+
+;; 
+a: 1
+b: neg T
+c:  D +0.0001
+x1: (neg b - sqrt((b*b)-(4*a*c)))/(2*a)
+x2: (neg b + sqrt((b*b)-(4*a*c)))/(2*a) 
+print [@[floor(max(@[x1, x2])) floor(min(@[x1, x2]))] ]
+return (floor(max(@[x1, x2]))- floor(min(@[x1, x2])))
+]
+
+ ; toy example
+print [nOpts 7 9 "==4"]
+print [nOpts 15 40 "==8"]
+print [nOpts 30 200 "==9"]
+
+
+; inputstr: demoinput
+
+solA: $[times,dist][
+    prod: []
+    loop.with: 'i times 'T [
+        D: dist\[i]
+        ;print D
+        'prod ++  nOpts T D
+            ]
+            print(prod)
+return product prod
+]
+
+
+
+
+
+t0: benchmark.get [
+   
+; manual parsing today
+times: [47     84     74     67]
+dist: [207   1394   1209   1014]
+
+timesB: [47847467]
+distB: [207139412091014]
+
+
+]
+t1: benchmark.get [
+
+answA: solA times,dist
+;print ["solA" solA times,dist]
+
+ print [~"|year| |day| a: " answA] ; 474678, 505766 too low   X  88390 505766  552395 507255  x -> too low? 474678 505766   => way too low . 153721 516573 x  156050 514347
+ 
+ ] 
+t2: benchmark.get  [
+;ans3b: solve3B inputstr
+ansB:solA timesB distB
+;print ["solB" ansB]
+
+print [~"|year| |day| b: " (ansB)] ; 2 less bc of white line in end
+]
+
+print(~"Time to parse:  \n |year|\\|day|parse) |t0| \n Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
