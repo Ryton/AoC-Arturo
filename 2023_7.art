@@ -23,10 +23,10 @@ inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
 
 cardorder: split "23456789TJQKA"
 cardorderB: split "J23456789TQKA"
-cardscore: @2..14 ; cardscore
-cardscore: #.raw flatten couple cardorder cardscore
-cardscoreB: #.raw flatten couple cardorderB cardscore
-;print cardscore  ; #[2:5 3:6 4:7 5:8 6:9 7:10 8:11 9:12 T:13 J:14 Q:15 K:16 A:17]
+cardvalues: @2..14 ; cardscore
+cardscoreA: #.raw flatten couple cardorder cardvalues
+cardscoreB: #.raw flatten couple cardorderB cardvalues
+;print cardscoreA  ; #[2:5 3:6 4:7 5:8 6:9 7:10 8:11 9:12 T:13 J:14 Q:15 K:16 A:17]
 
 
 scoreA: $[hand][
@@ -35,7 +35,7 @@ scoreA: $[hand][
     maincost: map (values handtally) [serieslength]   [ 
         (14^(6))*(14^(serieslength+1))                       ] 
     tiebreaker: map.with: 'pos (hand) [c] [
-        (14^(4+1-pos))*(cardscore\[c])] 
+        (14^(4+1-pos))*(cardscoreA\[c])] 
     ;print maincost
     ;print tiebreaker
     return ((sum maincost) + sum tiebreaker)  ; give points for card score
@@ -101,7 +101,7 @@ solveA: $[inputstr][
 
 
 solveB: $[inputstr][
-        
+    scored: #[]
     biddings: #[]  ; #["AAAAA": 253 , ...]
     loop inputstr 'line [
     splitline: split.by: " " line
@@ -117,7 +117,7 @@ solveB: $[inputstr][
         ;print biddings\[hand]
         currscore:((rank+1) * to :integer biddings\[hand])
         'rankedhands ++ hand ;
-        print [hand  ":"  biddings\[hand]  "(bidding)" "*" (rank+1)  " (rank) = "  currscore  "(score)"]
+        ;print [hand  ":"  biddings\[hand]  "(bidding)" "*" (rank+1)  " (rank) = "  currscore  "(score)"]
         'eachscore ++ currscore
 
     ]
