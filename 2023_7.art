@@ -80,8 +80,7 @@ solveA: $[inputstr][
     biddings: #[]  ; #["AAAAA": 253 , ...]
     loop inputstr 'line [
     splitline: split.by: " " line
-    hand: splitline\0
-    bids: splitline\1
+    [hand,bids]: splitline
     biddings\[hand]: bids  
     scored\[hand]: scoreA hand   ; assign unique value to hand.
     ]
@@ -105,14 +104,14 @@ solveB: $[inputstr][
     biddings: #[]  ; #["AAAAA": 253 , ...]
     loop inputstr 'line [
     splitline: split.by: " " line
-    hand: splitline\0
-    bids: splitline\1
+    [hand,bids]: splitline
     biddings\[hand]: bids  
         scored\[hand]: scoreB hand   ; assign unique value to hand.
     ]
 
     eachscore: []
     rankedhands:[]
+    
     loop.with: 'rank (keys  sort.values scored) 'hand [    
         ;print biddings\[hand]
         currscore:((rank+1) * to :integer biddings\[hand])
