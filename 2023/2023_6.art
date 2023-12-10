@@ -24,6 +24,7 @@ nOpts: $[T D]
 
 ;(s <t) 
 
+
 ; D -d =0 is edge => find roots for D-Ts -s*s = 0 
 ;; T = s + d/s    => ss - Ts + d = 0 (optimum)
 
@@ -36,10 +37,15 @@ nOpts: $[T D]
 
 ;; 
 a: 1
-b: neg T
-c:  D +0.0001
+b:(neg T)
+c:  (D +0.0001)
+test: 1`ms
+print test/test
+print units sqrt(test*test)
 x1: (neg b - sqrt((b*b)-(4*a*c)))/(2*a)
 x2: (neg b + sqrt((b*b)-(4*a*c)))/(2*a) 
+
+
 print [@[floor(max(@[x1, x2])) floor(min(@[x1, x2]))] ]
 return (floor(max(@[x1, x2]))- floor(min(@[x1, x2])))
 ]
