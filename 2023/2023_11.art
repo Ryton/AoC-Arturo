@@ -1,0 +1,98 @@
+#!/home/grimalkin/.arturo/bin/arturo -
+
+year: 2023
+day: 11
+
+parse: $[day, year][
+
+inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+
+
+;; toy input
+; demoex:{
+; ...#......
+; .......#..
+; #.........
+; ..........
+; ......#...
+; .#........
+; .........#
+; ..........
+; .......#..
+; #...#.....
+; }
+; inputstr: split.lines demoex
+
+
+;print inputstr\0
+;print inputstr\1
+return inputstr
+]
+
+t0:  benchmark.get [
+print("Parsing")
+do "../helperfiles/GetAoCData.art"
+inputstr:parse day year
+
+]    
+
+
+; edges is the map of galaxies (x-y coords)
+edges:  map 0..(dec size inputstr) 'it [map match.bounds (inputstr\[it]) {/[^.]/} 'cposrange   [@[it (first cposrange)]]] 
+|  flatten.once
+| filter  => empty?
+;print edges
+
+emptyrows: difference @(0..(dec size inputstr)) map edges 'pairs [pairs\0]
+emptycols: difference @(0..(dec size (inputstr\0))) map edges 'pairs [pairs\1]
+
+;print ["empty rows: " emptyrows ",empty cols: " emptycols ]
+;print emptycols
+
+
+mdist: $[galaxypair,emptyrows emptycols, xfactor][
+    g1: first galaxypair
+    g2: last galaxypair
+    r1: first g1
+    c1: last g1
+    r2: first g2
+    c2: last g2
+
+    nemptyrows: size select emptyrows 'val [all? @[(val< (max @[r1 r2])) (val>(min @[r1 r2]))]]
+    nemptycols: size select emptycols 'val [all? @[(val< (max @[c1 c2])) (val>(min @[c1 c2]))]]
+
+    dist: (abs(r2-r1))+(abs(c2-c1))+(xfactor-1)*(nemptyrows+nemptycols)
+    return dist
+]
+
+galaxypairs: permutate.by: 2 edges 
+
+t1: benchmark.get  [ 
+
+xfactorA: 2 ; for A
+alldistA: map galaxypairs 'pairs [
+        (mdist pairs emptyrows emptycols xfactorA) 
+        ;print [pairs  "=> " (mdist pairs emptyrows emptycols xfactorA)]
+                    ]
+    ;print alldistA
+    print [~"|year| |day| a: "  ((sum alldistA)/2)] 
+]
+
+
+t2:  benchmark.get  [ 
+    print "Start B solve:"
+    xfactorB: 1000000 ; for A
+    alldistB: map galaxypairs 'pairs [
+        ;print [pairs  "=> " (mdist pairs emptyrows emptycols xfactorB)]
+        (mdist pairs emptyrows emptycols xfactorB) 
+                    ;if @(currdist < currmin) ['currmin: currdist]
+                    ]
+    ;print alldistB
+    print [~"|year| |day| b: " ( (sum alldistB)/2)] 
+    ]
+
+
+print(~"Time to parse: \n |year|\\|day|parse) |t0| \n  Time to solve: \n |year|\\|day|a) |t1| \n |year|\\|day|b) |t2|")
+
+
+
