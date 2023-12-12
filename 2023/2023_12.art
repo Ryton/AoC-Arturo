@@ -1,0 +1,133 @@
+#!/home/grimalkin/.arturo/bin/arturo -
+
+year: 2023
+day: 12
+
+parse: $[day, year][
+
+inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+
+
+; ; toy input
+ demoex:{
+???.### 1,1,3
+.??..??...?##. 1,1,3
+?#?#?#?#?#?#?#? 1,3,1,6
+????.#...#... 4,1,1
+????.######..#####. 1,6,5
+?###???????? 3,2,1}
+;inputstr: split.lines demoex
+
+;print inputstr\0
+;print inputstr\1
+return inputstr
+]
+
+
+
+iterativebuilder: $[listsofar, line, pos][
+    
+    if? (pos = (size line)) [
+        return listsofar
+                ]
+    else[
+        symbol: line\[pos]
+        pos: pos +1
+        ;print [ "pos " pos, symbol]
+
+            if equal? (to :char symbol) (to :char "?") [
+                    longerlist:  []
+                    loop  listsofar 'alist [
+                        ;print ["alist: " alist]
+                        'longerlist ++  @[ alist ++ "#"]
+                        'longerlist ++  @[ alist ++ "."]
+                        ]                         
+                    return iterativebuilder longerlist line pos]
+            if equal? (to :char symbol) (to :char "#") [
+                    longerlist:  []
+                    loop  listsofar 'alist [
+                        ;print ["alist: " alist]
+                        'longerlist ++  @[ alist ++ "#"]
+                        ]
+                    return iterativebuilder longerlist line pos]
+            if equal? (to :char symbol) (to :char ".") [
+                    longerlist:  []
+                    loop  listsofar 'alist [
+                        ;print ["alist: " alist]
+                        'longerlist ++  @[ alist ++ "."]
+                        ]
+                    return iterativebuilder longerlist line pos]
+            ]
+]
+
+
+
+
+
+t0:  benchmark.get [
+print("Parsing")
+do "../helperfiles/GetAoCData.art"
+inputstr: parse day year
+;replace 'inputstr "?" "U" ; unknown
+;replace 'inputstr "." "G" ; Ground
+;replace 'inputstr "#" "X" ; 
+]    
+
+solveA: $[inputstr expandntimes][
+
+print "Solving A"
+print ["folded out" expandntimes "times"]
+
+
+lines: inputstr
+possperline: []
+myData: #[]
+loop lines 'tocheck [
+;print lines
+;tocheck: lines\0
+both: split.by: " " tocheck  
+grid: both\0
+occurlist: split.by: "," both\1
+
+emptylist: [""] ; start w a space
+posslist: (iterativebuilder emptylist grid 0)   ; 0 = startpos of search.
+anotherregex: map occurlist 'i ["[.]+[#]{" ++ (to :string i) ++ "}"]
+'anotherregex ++ "[.]*$"
+join.by:"" 'anotherregex
+anotherregex\3: "*" ; series doesnt have to start w .
+gathered: flatten unique map posslist 'poss [match poss anotherregex]
+accepted: select gathered [amatch][(size amatch)=(size grid)]
+;myData\[grid]: #["input": @grid
+;                "occurlist": @occurlist
+;                "answA":  @size accepted
+;                "accepted": @accepted
+;                 ]
+currsize: (size accepted)
+'possperline ++ currsize
+]
+;print myData
+;write.json "day2023_12_A.json" myData
+return possperline
+]
+
+
+
+
+t1: benchmark.get  [ 
+    print [~"|year| |day| a: "  ( sum solveA inputstr 1)] 
+]
+
+
+t2:  benchmark.get  [ 
+    print "Start B solve:"
+
+    print "NOT included yet. To be pondered."
+
+    print [~"|year| |day| b: " ] 
+    ]
+
+
+print(~"Time to parse: \n |year|\\|day|parse) |t0| \n  Time to solve: \n |year|\\|day|a) |t1| \n |year|\\|day|b) |t2|")
+
+
+
