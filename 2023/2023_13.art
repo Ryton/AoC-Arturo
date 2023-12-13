@@ -1,0 +1,144 @@
+#!/home/grimalkin/.arturo/bin/arturo -e
+;==========================================
+; Advent of Code solution 
+;
+; @file: tools/<year>_<day>.art (or default)
+; @author: Mixomycetes
+;==========================================
+
+
+demoinput: {
+#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#
+}
+ ;actual inject example here (into inptustr)
+do "../helperfiles/GetAoCData.art"
+year: 2023
+day: 13
+inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B;inputstr: read.lines demoinput
+;inputstr: read.lines demoinput
+;inspect inputstr
+
+transpose: $[M][
+    X: size M
+    Y: size first M
+    result: array.of: @[Y X] 0
+    loop 0..X-1 'i -> loop 0..Y-1 'j ->
+        result\[j]\[i]: M\[i]\[j]
+    return result
+]
+
+;inspect inputstr
+parse: $[inputstr][
+    return chunk inputstr => empty?
+    ]
+
+solB: $[][
+    return 0
+]
+
+findplane: $[grid][
+    ; on line direction
+;inspect  grid
+X: size grid ; 4
+maxsym: to :integer floor (X)/2 ; max  4 => 2
+;print maxsym
+;print ["grid size: " X, ", symmetry: " maxsym ", coords" 0 X-1 ]
+
+    loop maxsym..1 'symsize [ ; symmetry 2 for size 4.
+
+        loop  @[(symsize+0.5) ((X-symsize)+0.5)] 'idxcenter [ ; 2.5. 
+        ;  idxcenter start in ONEcounting base.
+            ;remainder below in ZERO base.
+            frombegin: to :integer ((idxcenter+0.5)-symsize)-1
+            fromend: to :integer (idxcenter-0.5)-1
+            
+            tosbegin: to :integer (idxcenter+0.5)-1
+            toend: to :integer (idxcenter+symsize-0.5)-1 ; idxcenter is just LEFT of center.
+            ;print["center" idxcenter ]
+            ;print["from" frombegin fromend]
+           ; print["to"  tosbegin toend]
+            
+            leftslice:   slice grid frombegin fromend
+            rightslice:  slice grid tosbegin toend
+            ;print ["left: " leftslice]
+            ;print ["right:" (reverse rightslice)]
+            if (leftslice = (reverse rightslice)) [
+                    return @[idxcenter-0.5, symsize]
+            ]
+        ]
+    ]
+return [0,0]
+]
+
+
+
+solveA: $[tables][
+    storednrs: []
+    loop tables 'grid[
+        ;print grid
+        X: size grid
+        if ((X)>1) [
+        ;inspect  grid
+        hmirr: findplane grid
+        vmirr: findplane transpose grid
+        
+        if? (hmirr\1)=(0)[ nr:vmirr\0 ]
+        else [  nr:hmirr\0 *100 ]
+        ;print ["letterslice : " vmirr, "lineslice: " hmirr]
+        ;print ["grid size: " X, ", symmetry: " floor X/2]
+       ;if (nr =0)[ print grid  ensure 0=1]
+        ; nr:hmirr\0 *100 + vmirr\0
+        
+        ;print ["nr: " nr]
+
+        'storednrs ++ new nr
+        ]
+
+            ]
+       
+            return storednrs
+]
+
+
+t0: benchmark.get [
+    tables: (parse inputstr)
+    ;inspect tables    
+    answA: (solveA tables)
+    
+;print answA
+;print (sort new answA)
+    ]
+
+
+t1: benchmark.get [
+
+;print ["solA" solA times,dist]
+
+ print [~"|year| |day| a: " to :integer sum answA] ; 474678, 505766 too low   X  88390 505766  552395 507255  x -> too low? 474678 505766   => way too low . 153721 516573 x  156050 514347
+ 
+ ] 
+t2: benchmark.get  [
+;ans3b: solve3B inputstr
+ansB:solB 
+;print ["solB" ansB]
+
+print [~"|year| |day| b: " (ansB)] ; 2 less bc of white line in end
+]
+
+print(~"Time to parse:  \n |year|\\|day|parse) |t0| \n Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+; too high: 114707
+; too low: 28k

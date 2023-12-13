@@ -52,22 +52,22 @@ print ["startdirs: " startdirs]
 
 
 ;; part 2; ex3 toy example
-; ;; example input 23
-; ex3:
-; {...........
-; .S-------7.
-; .|F-----7|.
-; .||.....||.
-; .||.....||.
-; .|L-7.F-J|.
-; .|..|.|..|.
-; .L--J.L--J.
-; ...........}
-; inputstr: ex3
-; startpos: 1+1*i
-; dir: startdirs\0  ; 0 a,d 3 for demo
-; dir: startdirs\3  ; 0 a,d 3 for demo
-; Srepaceletter: "F"
+;; example input 23
+ex3:
+{...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........}
+inputstr: ex3
+startpos: 1+1*i
+dir: startdirs\0  ; 0 a,d 3 for demo
+dir: startdirs\3  ; 0 a,d 3 for demo
+Srepaceletter: "F"
 ; answ : 4 4 should give identical results ==> OK
 
 
@@ -310,15 +310,20 @@ t2:  benchmark.get  [
     print "Start B solve:"
 
 
-    slinepos: 38
-    linewithS: (inputstr\38)
+    slinepos: 1 ; 38 for real example
+    ;linewithS: (inputstr\38)
+    linewithS: inputstr\1
+
+
+
     replace 'linewithS {/S/} Srepaceletter
-    inputstr\38: linewithS
+    inputstr\1: linewithS ; 38
     ;print inputstr
-    print "strartBsolve"
+    print "start B solve"
     solB:  solveB  pathfollowed  (size inputstr)  (size (inputstr\0))
     ;print pathfollowed
     ;print solB
+    
     print [~"|year| |day| b: " ( size solB)] ; 1392; 1326 too high  X 1353 x 1414
 ]
 
@@ -330,4 +335,49 @@ t2:  benchmark.get  [
 print(~"Time to parse: \n |year|\\|day|parse) |t0| \n  Time to solve: \n |year|\\|day|a) |t1| \n |year|\\|day|b) |t2|")
 
 
+    ; color it all! (small example first)
+    
+    fullmap: []
+    animallair: solB
+    inspect fullmap
+    loop.with: 'x inputstr [aline][
+        
+        line: aline
+        print aline
+        loop.with: 'y line [l] [
+; a: color #green « te
+            achar: new l    
+            coloredstr: "X"
+            inspect l
+            if? (in? (x+i*y)  pathfollowed) [
+                'coloredstr: (color #green (to :string achar))
+                ]
+            else [ 
+                    if? in? (x+i*y)  animallair [ 
+                    'coloredstr: (color #blue (to :string achar))
+                    else [
+                        'coloredstr: (color #orange (to :string achar))
+                        ]                        
+                    ]
+                ]
+            'fullmap ++ @[coloredstr]
 
+            ]
+            'fullmap  ++ ["/n"]
+    ]
+
+; idea: join array  of color + #color + text
+; a: color #green « te
+; b: color #red   « ST
+
+; print a ++ b
+; print ~"|a||b|"
+
+; print append color #green "te" color #red "ST"
+; print (color #green "te") ++ (color #red "ST")
+
+; print ~{|color #green "te"||color #red "ST"|}
+
+  inspect fullmap
+
+print wordwrap join  fullmap
