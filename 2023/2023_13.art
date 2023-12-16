@@ -28,7 +28,7 @@ demoinput: {
 do "../helperfiles/GetAoCData.art"
 year: 2023
 day: 13
-inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B;inputstr: read.lines demoinput
+
 ;inputstr: read.lines demoinput
 ;inspect inputstr
 
@@ -115,10 +115,9 @@ solveA: $[tables][
 
 
 t0: benchmark.get [
+    inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B;inputstr: read.lines demoinput
     tables: (parse inputstr)
     ;inspect tables    
-    answA: (solveA tables)
-    
 ;print answA
 ;print (sort new answA)
     ]
@@ -126,19 +125,16 @@ t0: benchmark.get [
 
 t1: benchmark.get [
 
+    answA: (solveA tables)
+    
 ;print ["solA" solA times,dist]
 
  print [~"|year| |day| a: " to :integer sum answA] ; 474678, 505766 too low   X  88390 505766  552395 507255  x -> too low? 474678 505766   => way too low . 153721 516573 x  156050 514347
  
  ] 
 t2: benchmark.get  [
-;ans3b: solve3B inputstr
 ansB:solB 
-;print ["solB" ansB]
-
-print [~"|year| |day| b: " (ansB)] ; 2 less bc of white line in end
+print [~"|year| |day| b: <TODO>" (ansB)] ; 2 less bc of white line in end
 ]
 
 print(~"Time to parse:  \n |year|\\|day|parse) |t0| \n Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
-; too high: 114707
-; too low: 28k

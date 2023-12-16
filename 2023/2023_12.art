@@ -7,7 +7,6 @@ parse: $[day, year][
 
 inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
 
-
 ; ; toy input
  demoex:{
 ???.### 1,1,3
@@ -22,7 +21,6 @@ inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
 ;print inputstr\1
 return inputstr
 ]
-
 
 
 iterativebuilder: $[listsofar, line, pos][
@@ -66,11 +64,8 @@ iterativebuilder: $[listsofar, line, pos][
 
 t0:  benchmark.get [
 print("Parsing")
-do "../helperfiles/GetAoCData.art"
+;do "../helperfiles/GetAoCData.art"
 inputstr: parse day year
-;replace 'inputstr "?" "U" ; unknown
-;replace 'inputstr "." "G" ; Ground
-;replace 'inputstr "#" "X" ; 
 ]    
 
 solveA: $[inputstr expandntimes][
@@ -110,20 +105,107 @@ currsize: (size accepted)
 return possperline
 ]
 
+recursivecounter: $[grid occurlist totalsum][
+    ; end conditions. work in progress...
+
+
+    print [grid, occurlist]
+    nblocks: size occurlist ; amount of blocks left.
+    npointsleft: size grid 
+    if all? @[(nblocks)>0 npointsleft<=0] [return  0 ]; fails bc not enough space
+    ;if all? @[(nblocks)=0 max(grid)=1] => return  1 ; OK  with all dots (? -> dots.)
+
+    minpointsrequired: (sum occurlist)+ dec size occurlist
+    print [npointsleft nblocks  minpointsrequired]
+    if (minpointsrequired<npointsleft) [return  0] ; fails
+    ;if (minpointsrequired=npointsleft) [return  1] ; done!!
+    
+
+    ; normal conditions.
+    firstnr: first grid ;".", "?" ""
+
+    nsame: first collect grid 'x [equal? x firstnr]
+    nneededinnextblock: first occurlist
+    print [firstnr nsame nneededinnextblock ]
+   
+    if (nsame < nneededinnextblock) [ return 0] 
+
+    print [firstnr  nsame]
+
+    case [firstnr]  ; and possible!
+        when? [=0] [ ; 0 or . => remove em and continue
+            chop grid nsame  
+            add 'totalsum  recursivecounter grid occurlist 0]
+        when? [=2] [ ; 2 or X => remove em
+                if (min first.n: nneededinnextblock grid) [return 0] ; a zero in the next seris.
+                ;else: still possible!
+                chop 'grid nneededinnextblock 
+                sub 'occurlist\0: nneededinnextblock 
+                if? size (grid = 0) [ add 'totalsum + recursivecounter grid occurlist 0] ; end condition.
+                else [
+                        if (first grid = 2) [return 0] ; force a . after => else fail..
+                        chop 'grid ; 0 or 1 => force it to be 0.
+                        add 'totalsum   recursivecounter grid occurlist 0
+                        ]
+                ]
+        else[ ; 1 or ?
+                ; change it to 0, drop one point and continue!   
+                add 'totalsum  + recursivecounter (drop grid) occurlist
+
+                if (min first.n: nneededinnextblock grid 0) [return 0] ; a zero in the next seris.
+                ;else: still possible!
+                chop 'grid nneededinnextblock 
+                sub 'occurlist\0: nneededinnextblock 
+                if? size (grid = 0) [ add 'totalsum + recursivecounter grid occurlist 0] ; end condition.
+                else [
+                        if (first grid = 2) [return 0]
+                        chop 'grid ; 0 or 1 => force it to be 0.
+                        add 'totalsum   recursivecounter grid occurlist 0
+                ]
+        ]
 
 
 
+    return totalsum
+]
+
+
+
+grid: [ 1 0 0 2 0]
+occurlist: [1 3 ]
+print ["totsum "recursivecounter grid occurlist]
+
+solveB: $[inputstr expandntimes][
+
+loop inputstr 'lines[
+
+    replace 'lines "?" "1" ; unknown
+    replace 'lines "." "0" ; Ground
+    replace 'lines "#" "2" ; 
+
+    both: split.by: " " lines  
+    inspect both
+    grid: to [:integer] split both\0
+
+    occurlist: to [:integer] split.by: "," both\1
+    print grid
+    print occurlist
+    totsum: 0
+    recursivecounter grid occurlist totsum 
+
+    ]
+]
 t1: benchmark.get  [ 
-    print [~"|year| |day| a: "  ( sum solveA inputstr 1)] 
+;    print [~"|year| |day| a: "  ( sum solveA inputstr 1)] 
 ]
 
 
 t2:  benchmark.get  [ 
     print "Start B solve:"
+    numinputstr: new inputstr
+answB: solveB  numinputstr 1
 
-    print "NOT included yet. To be pondered."
-
-    print [~"|year| |day| b: " ] 
+    print [~"|year| |day| b: "  ] 
     ]
 
 
