@@ -36,14 +36,11 @@ hash: $[inputstr][
     return  totalval
 ]
 
-;print hash @[label]
-
 solveA: $[inputstr][
 ensure.that: "dummy example failed" [ 52 = hash ["HASH"]]
 ensure.that: "demo example failed" [(hash split.by:"," demoex ) = 1320]
 return hash inputstr
 ]
-
 
 
 calcscore: $[boxes][
@@ -64,7 +61,6 @@ solveB: $[inputstr][
    boxes: array.of: 256 #[]
     ; put them in boxes.
     loop inputstr 'line[
-         ;inspect line
         if (in? "-" line )[
             splitline: split.by: "-" line
             val:0
@@ -74,8 +70,7 @@ solveB: $[inputstr][
             loop 0..255 'n [
                 dctA:  boxes\[n]
                 if  (key? dctA label) [ ; replace the old lens with the new lens:
-                    remove.key 'dctA label
-                    boxes\[n]: dctA
+                    boxes\[n]: remove.key dctA label
                 ]
         ]
 
@@ -104,36 +99,27 @@ solveB: $[inputstr][
 
 score: calcscore boxes
 return score
-
 ]
 
 
 t0: benchmark.get  [ 
-
-inputstr: parse day year
-
+    inputstr: parse day year
 ]
 
 
 t1: benchmark.get  [ 
-
-  print [~"|year| |day| a: "  ( solveA inputstr )] 
-
+    print [~"|year| |day| a: "  ( solveA inputstr )] 
 ]
 
 
 t2:  benchmark.get  [ 
     print "Start B solve:"
-    
-answB: solveB inputstr
-
+    answB: solveB inputstr
     print [~"|year| |day| b: " answB  ] 
     ]
 
 
 roundQTT_ms: $[t][to :quantity @[round.to:1 scalar (in `ms t), `ms]]
-
-
 print(~"Time to parse: \n |year|\\|day|parse) |roundQTT_ms t0| \n  Time to solve: \n |year|\\|day|a) |roundQTT_ms t1| \n |year|\\|day|b) |roundQTT_ms t2|")
 
 
