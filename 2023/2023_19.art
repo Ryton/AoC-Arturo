@@ -21,73 +21,68 @@ hdj{m>838:A,pv}
 {x=2461,m=1339,a=466,s=291}
 {x=2127,m=1623,a=2188,s=1013}}
 
+
 parse: $[day,year][
     ;do "../helperfiles/GetAoCData.art"
-    inputstr: read ~"../data/input|year|_|day|.txt"; for B
+    inputstr: split.by:"\n\n" read ~"../data/input|year|_|day|.txt"; for B
     ;inputstr: demoex
-    
-    ;inputstr:  split.by: "\n\n"  inputstr 
-    ;rules: (strip first inputstr)
-    ;scrap: (strip last  inputstr)
-    rules: scrap: strip first <= (split.by: "\n\n"  inputstr ) => strip last
-    replace 'scrap {/[xmas=\{\}]+/} "" ; 
-    replace 'scrap "," " ";
 
+    rules: (strip first inputstr)    
+    ;; seems we can do block replace?
+     replace 'rules ["}" {/,/}  {/([<>=\w]+)[:](\w+)/} "{"] [" x m a s] "  " " {if $1 [$2 x m a s]} ": $[x m a s]["]
+        ; replace 'rules "}" " x m a s] ";
+        ; replace 'rules {/,/}  " "
+        ; replace 'rules {/([<>=\w]+)[:](\w+)/} {if $1 [$2 x m a s]}
+        ; replace 'rules "{"  ": $[x m a s]["; 
+
+    scrap: (strip last  inputstr)    
+    ;; w bock replace:
+    replace 'scrap [{/[xmas=\{\}]+/} ","] ["" " "] ; 
+        ;replace 'scrap {/[xmas=\{\}]+/} "" ; 
+        ;replace 'scrap "," " ";
     alist: map split.lines scrap 'item [ flatten map split.by: " "  item 'v [ :integer v ]]
-
-    replace 'rules "}" " x m a s] ";
-    replace 'rules {/,/}  " "
-    replace 'rules {/([<>=\w]+)[:](\w+)/} {if $1 [$2 x m a s]}
-    replace 'rules "{"  ": $[x m a s]["; 
-
     return @[rules alist]
 ]
 
 
 solveA: $[rules alist][
-
+    ; parse rules
+    A: $[x m a s] [return true] ; accepted
+    R: $[x m a s] [return false] ; rejected
     loop split.lines rules 'rule [ do rule ]
-    A: $[x m a s] [return true]
-    R: $[x m a s] [return false]
-   
+
+    ; loop parts
     tot: 0
     loop @alist 'xmas[
         [x m a s]: to [:integer] xmas
         accept: first @[(in x m a s)]
-        
         if? (accept) [val: x+m+a+s] else [val: 0]
-          'tot: tot + val
+          add 'tot val
     ]
     return tot
 ]
+
 
 solveB: $[inputstr][
 return 0
 ]
 
-
+;; entry point:
 t0: benchmark.get  [ 
-
 [rules alist]: parse day year 
-
 ]
 
 
 t1: benchmark.get  [ 
-
-  print [~"|year| |day| a: "  ( solveA rules alist )] 
-
+    answA: solveA rules alist 
+  print [~"|year| |day| a: " (answA)] 
 ]
 
-
 t2:  benchmark.get  [ 
-    print "Start B solve:"
-    
-answB: 0 ; solveB 
-
-    print [~"|year| |day| b: "  ] 
+    print "Start B solve:" 
+    answB: solveB  0
+    print [~"|year| |day| b: " (answB) ] 
     ]
-
 
 roundQTT_ms: $[t][to :quantity @[round.to:1 scalar (in `ms t), `ms]]
 
