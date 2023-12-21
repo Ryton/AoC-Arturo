@@ -21,7 +21,7 @@ parse: $[day year][
     U 3 (#a77fa3)
     L 2 (#015232)
     U 2 (#7a21e3)}
-    ;inputstr: demoex
+   ; inputstr: demoex
 return inputstr
 ]
 
@@ -127,9 +127,9 @@ loop 0.. inc rangeY 'y[ ; rows
     'arr ++ @[arow]
 
 ]
-print ["size ARR " size arr size arr\0]
-
-print "Do 18a like 10b:"
+;print ["size ARR " size arr size arr\0]
+loop arr 'lines [print lines]
+;print "Do 18a like 10b:"
 i: to :complex [0 1]  ; base 2D coordinate system.
 nlines: new rangeX
 ncols: new rangeY
@@ -142,11 +142,10 @@ pathfollowed: values strtocomplex
         loop (0..rangeY) 'rpos[ ; rows
              storeinoutline: []
         'isin: false
-        print [rpos "/" nlines]
+        ;print [rpos "/" nlines]
          loop (0..rangeX) 'cpos[ ; pos on row        
         ;loop (0..(dec ncols)) 'cpos [
-
-         print [rpos, cpos]
+        ; print [rpos, cpos]
         'currpoint: (cpos +xmin + (rpos+ymin)*i) ; complex  repr.
         
         linesegment: (arr\[rpos])
@@ -192,11 +191,12 @@ pathfollowed: values strtocomplex
         ]
         ]
 
-print ["solution size:" size canbenest]
-print ["edges size:" size posdict]
-print ["dug out:" (size posdict) +(size canbenest)]
-return (size posdict) +(size canbenest)
+;print ["solution size:" size canbenest]
+;print ["edges size:" size posdict]
+;print ["dug out:" (size posdict) +(size canbenest)]
+return size canbenest
 ]
+
 
 
 t1: benchmark.get  [ 
