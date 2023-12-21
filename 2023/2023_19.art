@@ -78,9 +78,10 @@ t1: benchmark.get  [
   print [~"|year| |day| a: " (answA)] 
 ]
 
+
 t2:  benchmark.get  [ 
     print "Start B solve:" 
-    answB: solveB  0
+    answB: "not solved"
     print [~"|year| |day| b: " (answB) ] 
     ]
 
