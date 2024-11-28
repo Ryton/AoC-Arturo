@@ -1,0 +1,10 @@
+.ipynb_checkpoints/
+.idea/
+__pycache__/
+*.txt
+*.jpg
+*.png
+*.gif
+*.art
+*.bcode
+*input*
