@@ -1,7 +1,0 @@
-; ./bin/arturo
-inputstr: read "input2015_5.txt"
-arr: split.lines inputstr
-print arr
-
-print ["2015 5a: " ]
-print ["2015 5b: " ]
