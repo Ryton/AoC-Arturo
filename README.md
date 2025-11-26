@@ -2,7 +2,7 @@ An attempt by a coding enthusiast, by no means a capable or professional one,
 to solve the Advent of code puzzles using Arturo programming language.
 
 Some of the event years (appearently the ODD years)  i only / mostly use Arturo. 
-Several other editions on EVEN years i solved partially using mostly python, those mischievous attempts can be found in a separate repo.
+Several other editions on EVEN years i solved partially using mostly python, some of those mischievous attempts can be found in the 'python' branch and also in a separate repo.
 
 
 Disclaimer:
