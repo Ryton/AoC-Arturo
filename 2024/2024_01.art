@@ -1,0 +1,60 @@
+#!/home/simon/.arturo/bin/arturo -e
+;==========================================
+; Advent of Code solution 
+;
+; @file: tools/<year>_<day>.art (or default)
+; @author: Mixomycetes
+;==========================================
+
+;print "bla"
+;FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/Users/grimalkin/AoC/2023/2023_1.art'
+;print FilenamewoExtention
+;
+year: "2024"
+day: "02"
+;[year,day]: split.by:"_" FilenamewoExtention   ; 2023 1 
+
+;print "reading input..."
+datafilename: ~"../data/input|year|_|day|.txt" ; running from main dir
+;do "../helperfiles/GetAoCData.art" ; fetches the data and stores it in
+;inputstr:  chop read datafilename
+inputstr: read datafilename
+
+
+
+if? zero? size inputstr [print "Error loading data. please name your file input<year>_<day>.txt"]
+else [];  " parsing... done!"]
+
+;print inputstr
+; demoword: "threeblztlfgltlznxv9cqsjfnmgftnmscjmxpmfkleight"
+
+parsed: inputstr
+
+
+solve_A:$[parsed]
+ [
+   loop parsed 'report [
+      loop report
+
+
+   ]
+    return 0
+ ]
+
+
+
+solve_B:$[parsed]
+ [
+    return 0
+
+ ]
+;print("pasring...")
+;print("solving...")
+t1: benchmark.get [
+ print [~"|year| |day| a: " (solve_A inputstr)] ; 2 less bc of white line in end
+ ]
+t2: benchmark.get  [
+ print [~"|year| |day| b: " (solve_B inputstr)] ; 2 less bc of white line in end
+]
+
+print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")

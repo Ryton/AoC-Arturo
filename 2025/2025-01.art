@@ -1,0 +1,32 @@
+#!/bin/arturo
+;==========================================
+; Advent of Code solution 
+;
+; @file: 2025/<year>_<day>.art (or default)
+; @input: inputs/<year>_<day>.art (or default)
+
+; @author: Mixo
+;==========================================
+
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ ; eg /mnt/c/hobbies/AoC/2025_01.art' => 2025_01
+print (split.by:"_" FilenamewoExtention)   ; 2023 1 ;print [day,year]
+year: 2024
+day: 11
+do "../helperfiles/GetAoCData.art"  ; fetches  current day year.
+Pinput: (data)
+print ["Pinput" Pinput]
+
+inputstr: "2 3 4 5 6 7"
+parsethis: $[i] [
+    i   | split.by: " " 
+        | map => [to :integer &]
+        | sum
+    ]
+;print map 1..5 [x][    2*x]
+
+parsed: (parsethis inputstr)
+
+print ["parsed" parsed]
+
+;print process parsed
+

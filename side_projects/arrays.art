@@ -1,0 +1,12 @@
+
+
+matrix: @.of: [2, 3] "x"
+matrixT: @.of: [3, 2] "."
+
+matrixT:  matrix | flatten
+                 | gather.with: 'i 'v [ i% size matrix\[0] ] 
+                 | values
+
+matrixT ; => [x x] [x x] [x x]
+print matrix
+print color #red to :string matrixT

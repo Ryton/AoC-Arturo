@@ -1,0 +1,77 @@
+
+
+;Ascii_genenerator code that reads in a BMP image,  and spits out a (basic) ascii code image
+; Pseudocode
+; 1) Read in BMP
+; 2) convert to intensity /greyscale
+; 3) resize to desird size
+; 4) make an array where each pixel is a symbol
+; 5) (optional) color the image with the original pixel values
+; 6) printt to console
+; 7) export to file
+
+
+RGB_twoDArray_to_Shell_image: $[image, symbol][
+fullcolorimage: join.with:"\n" map 0..dec size image 'idx 
+		[ join map (to [:color] image\[idx]) 'acolor [(color  acolor  symbol)]]  
+return fullcolorimage
+]
+
+; symbols: split ".,°![}§è#"
+
+
+raw_RGB_json_to_shell: $[filename :string ] [ ;-> void 
+	; filename:  "ascii_image.json" ; " 16pixels.rgb"    
+	symbol: "█"	
+	fullimage: do read filename
+	;inspect image ; 16x10x3
+	image: fullimage
+	; ColorTextRow:  join map (to [:color] image\[0]) 'acolor [(color  acolor  symbol)]  
+	fullcolorimage: RGB_twoDArray_to_Shell_image image symbol 
+	return fullcolorimage
+]
+
+convert_flattened_list_to_row_cols_3: $[L W RasterList][
+	print("DEBUG: started convert ")
+	nEl:  size RasterList ;; aaah IF bignumber is a very very big Float, every byte = 2 hexa's is in accessible by location
+	W_H: (L*W*3)
+	print nEl
+	print W_H
+	sizeOK?: equal? nEl W_H 
+	print sizeOK?
+	if not? sizeOK? [print "Raster cannot be converted, wrong size" return []]
+	print RasterList[0..1]
+	print RasterList[0..5]
+	;RasterList_split:  [to :string] split RasterList  ; 
+	;print size RasterList
+	;print "OLD_rasterList_"
+;	; inspect RasterList
+
+	shiftby: 0
+	 rasterList_RGB: map 0..(dec size RasterList)/3 'idx  [  
+	                         join @[RasterList\(idx*3) |shr shiftby   RasterList\(1+idx*3)|shr shiftby  RasterList\(2+idx*3)| shr shiftby ] ]
+	 print "rasterList_RGB"
+	 inspect rasterList_RGB
+	 print 3* size rasterList_RGB
+	;print "poppin"
+	;line_RGB: map  RasterList_split [x y] [ x : pop.n: 3 'y ]
+	;print 3* size rasterList_RGB
+	;print "popped"
+	StructuredRaster: values gather.with: 'i rasterList_RGB =>  (i%W)   
+	print size StructuredRaster
+	return StructuredRaster
+]
+
+PPM_to_shell: $[PPMfilename :string ] [ ;-> void 
+	; filename:  "ascii_image.json" ; " 16pixels.rgb"    
+	fullimage: read.lines PPMfilename
+	[L , W ]: to [:integer] split.words fullimage\[1]
+	theRaster: (to :binary fullimage\[3])
+	StructuredRaster: (convert_flattened_list_to_row_cols_3 L W theRaster)
+	return RGB_twoDArray_to_Shell_image StructuredRaster  "█"
+	
+]
+
+print raw_RGB_json_to_shell "ascii_image.json"
+
+;print PPM_to_shell "to_shell_indexed.ppm"

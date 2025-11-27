@@ -10,61 +10,41 @@
 ;; * year, string
 ;; * day:  string
 
-if? ((size arg) < 2) [
-    ;print ["Please pass in 2 arguments (day and year) and add the .token to the parent dir."]
-    year: now\year  ;year: 2023
-    day: now\day   ;day:2    
-    ]
-else 
-    [
-    
-    year: arg\0
-    day:  arg\1  
-    print [day "day" "year" year]
-    ]
 
-;filename: ~"../data/input|year|_|day|.txt"
+FetchInput: $[day year][
+    ; resp: runtimeinjectoin
+    ;online fetch & store
+    ;; production       
+
+    ;if? ((size arg) < 2) [
+        ;print ["Please pass in 2 arguments (day and year) and add the .token to the parent dir."]
+
+    ;else[
+    ;    year: arg\[0]
+    ;    day: arg\[1]
+    ;]
+    ;year: now\year  ;year: 2023
+    ;day: now\day   ;day:2    ]
     filename: ~"../data/input|year|_|day|.txt"
-    ;data: "test"
+    if?  (exists? filename) [
+            print "File exists, trying to load data from file."
+            data: read filename
+            return data
+        ]
+    else [
+        URL: ~"https://adventofcode.com/|year|/day/|day|/input"
+        PersonalAocToken: read relative "..//.token"  ; content of file:  "session=53616c7465645 ... "  
+        ; PERSONAL token => can get it from browser cookies, see here: https://github.com/wimglenn/advent-of-code-wim/issues/1
+        ;inspect PersonalAocToken
+        headers: #[cookie: PersonalAocToken]
+        ;inspect headers
+        resp: request.headers: headers URL headers
+        data: resp\body
 
+        print "Data fetched ... "
 
-if?  (exists? filename) [
-        print "File exists, data loaded from file."
-        data: read filename
-    ]
-else [
-
-;; TESTING
-; runtimeinjectoin: {test
-; can browser
-; wjlatlksjf
-
-; ç§çç(é(!ç!'""))
-; data: runtimeinjectoin
-; write filename data 
-; }
-; resp: runtimeinjectoin
-;online fetch & store
-
-;; production       
-URL: ~"https://adventofcode.com/|year|/day/|day|/input"
-print URL
-PersonalAocToken: read relative "..//.token"  ; content of file:  "session=53616c7465645 ... "  
-; PERSONAL token => can get it from browser cookies, see here: https://github.com/wimglenn/advent-of-code-wim/issues/1
-inspect PersonalAocToken
-headers: #[cookie: PersonalAocToken]
-
-inspect headers
-resp: request.headers: headers  URL headers
-data: resp\body
-
-print "Data fetched ... "
-inspect data
-print ["Saved to " filename ]
-write  filename  data
-
-
-
+        write data filename
+        print ["Saved to " filename ]
+        return data 
+        ]
 ]
-;print("data:")
-;inspect resp
