@@ -6,8 +6,8 @@
         {
             "label": "exec_Arturo",
             "type": "shell",
-            //"command": "C:\\hobbies\\arturo\\arturo.exe -u ${file}",
-            "command": "/usr/bin/arturo -u ${file}",
+            //"command": "C://hobbies//arturo//arturo.exe -u ${file}",
+            "command": "/bin/arturo -u ${file}",
             "isBuildCommand": true,
             
             

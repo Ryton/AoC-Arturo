@@ -1,4 +1,4 @@
-#!/home/grimalkin/.arturo/bin/arturo -e
+#!/bin/arturo -e
 ;;==========================================
 ;; Advent of Code solution 
 ;;
@@ -11,7 +11,8 @@
 ;; * day:  string
 
 
-FetchInput: $[day year][
+FetchInput: $[year day][
+    ;print ["args of Fetchinput" args]
     ; resp: runtimeinjectoin
     ;online fetch & store
     ;; production       
@@ -25,26 +26,36 @@ FetchInput: $[day year][
     ;]
     ;year: now\year  ;year: 2023
     ;day: now\day   ;day:2    ]
-    filename: ~"../data/input|year|_|day|.txt"
-    if?  (exists? filename) [
-            print "File exists, trying to load data from file."
-            data: read filename
+    day_stripped: to :string to :integer day ; stripping leading zeros.
+    day_str: pad.with: '0' (to :string day_stripped) 2
+    year_str: to :string year
+    filename_datafile: ~"input_|year|_|day_stripped|.txt" ; somehow this parse flips year and day??
+    filename_and_path:  path\current  ++ "/data/" ++  filename_datafile ; ++ "/data/"++ (~"input|year|_|day_stripped|.txt") ; ../data/
+    ;print filename_and_path
+    ;print  exists? filename_and_path
+    
+    if? exists? filename_and_path [
+            ;print "File exists, trying to load data from file."
+            data: read filename_and_path
+            ;print ["size data " size data]
             return data
         ]
     else [
-        URL: ~"https://adventofcode.com/|year|/day/|day|/input"
-        PersonalAocToken: read relative "..//.token"  ; content of file:  "session=53616c7465645 ... "  
+        URL: ~"https://adventofcode.com/|year|/day/|day_stripped|/input" ; yes its inverse,
+        print URL
+        PersonalAocToken: (read path\current ++ "/.token")  ; content of file:  "session=53616c7465645 ... "  
         ; PERSONAL token => can get it from browser cookies, see here: https://github.com/wimglenn/advent-of-code-wim/issues/1
-        ;inspect PersonalAocToken
+        
         headers: #[cookie: PersonalAocToken]
-        ;inspect headers
+        ;print PersonalAocToken
+        ;print headers
+        print "File not found. Data fetched online ... "
         resp: request.headers: headers URL headers
         data: resp\body
-
-        print "Data fetched ... "
-
-        write data filename
-        print ["Saved to " filename ]
+        print ["data received ... saving to " ~"data/|filename_datafile|"]
+        ;print ["data" data]
+        write.relative  ("data/" ++ filename_datafile) data
+        print ["Saved." ]
         return data 
         ]
 ]

@@ -1,6 +1,6 @@
+#!/bin/arturo -u
 
-
-;Ascii_genenerator code that reads in a BMP image,  and spits out a (basic) ascii code image
+; Ascii_genenerator code that reads in a BMP image,  and spits out a (basic) ascii code image
 ; Pseudocode
 ; 1) Read in BMP
 ; 2) convert to intensity /greyscale
@@ -12,6 +12,7 @@
 
 
 RGB_twoDArray_to_Shell_image: $[image, symbol][
+	"2D array with 3 values mapping to color, with symbol at pos."
 fullcolorimage: join.with:"\n" map 0..dec size image 'idx 
 		[ join map (to [:color] image\[idx]) 'acolor [(color  acolor  symbol)]]  
 return fullcolorimage
@@ -19,11 +20,18 @@ return fullcolorimage
 
 ; symbols: split ".,°![}§è#"
 
+; maybe slightly cleaner but no sure if its fast enough for big datasets/ there are better ways:
+transpose: $ [matrix][
+matrixT2:  matrix | flatten.once
+                  | gather.with: 'i 'v [ i% size matrix\[0] ] 
+                  | reverse values
+return matrixT2 ]
 
-raw_RGB_json_to_shell: $[filename :string ] [ ;-> void 
+raw_RGB_json_to_shell: $[filename ] [ ;-> void 
 	; filename:  "ascii_image.json" ; " 16pixels.rgb"    
+	;; already an X by Y by 3 array.
 	symbol: "█"	
-	fullimage: do read filename
+	fullimage: do (read filename)
 	;inspect image ; 16x10x3
 	image: fullimage
 	; ColorTextRow:  join map (to [:color] image\[0]) 'acolor [(color  acolor  symbol)]  
@@ -33,6 +41,7 @@ raw_RGB_json_to_shell: $[filename :string ] [ ;-> void
 
 convert_flattened_list_to_row_cols_3: $[L W RasterList][
 	print("DEBUG: started convert ")
+	
 	nEl:  size RasterList ;; aaah IF bignumber is a very very big Float, every byte = 2 hexa's is in accessible by location
 	W_H: (L*W*3)
 	print nEl
@@ -40,38 +49,127 @@ convert_flattened_list_to_row_cols_3: $[L W RasterList][
 	sizeOK?: equal? nEl W_H 
 	print sizeOK?
 	if not? sizeOK? [print "Raster cannot be converted, wrong size" return []]
-	print RasterList[0..1]
-	print RasterList[0..5]
-	;RasterList_split:  [to :string] split RasterList  ; 
-	;print size RasterList
-	;print "OLD_rasterList_"
-;	; inspect RasterList
+	;print RasterList[0..1]
+	;print RasterList[0..5]
+	;RasterList_split:  new RasterList  ; 
+	;print ["size;" size RasterList]
+	
+	;; group per 3 
 
-	shiftby: 0
-	 rasterList_RGB: map 0..(dec size RasterList)/3 'idx  [  
-	                         join @[RasterList\(idx*3) |shr shiftby   RasterList\(1+idx*3)|shr shiftby  RasterList\(2+idx*3)| shr shiftby ] ]
-	 print "rasterList_RGB"
-	 inspect rasterList_RGB
-	 print 3* size rasterList_RGB
+	output2Dlist: map RasterList  [x y z] [@[x y z]]
+
+	;print "OLD_rasterList_"
+	;inspect RasterList
+	rasterList_RGB: map 0..(dec dec W) 'idx  [ (output2Dlist\[(L*idx)..((L)*(idx+1))])]
+	;shiftby: 0
+	;rasterList_RGB: map 0..(dec size RasterList)/3 'idx  [join @[RasterList\(idx*3) |shr shiftby   RasterList\(1+idx*3)|shr shiftby  RasterList\(2+idx*3)| shr shiftby ] ]
+	; print "rasterList_RGB"
+	;inspect rasterList_RGB
+	; print 3* size rasterList_RGB
 	;print "poppin"
 	;line_RGB: map  RasterList_split [x y] [ x : pop.n: 3 'y ]
 	;print 3* size rasterList_RGB
 	;print "popped"
-	StructuredRaster: values gather.with: 'i rasterList_RGB =>  (i%W)   
-	print size StructuredRaster
+	StructuredRaster: rasterList_RGB ; values gather.with: 'i rasterList_RGB =>  (i%W)   
+	;print size StructuredRaster
 	return StructuredRaster
 ]
 
 PPM_to_shell: $[PPMfilename :string ] [ ;-> void 
 	; filename:  "ascii_image.json" ; " 16pixels.rgb"    
-	fullimage: read.lines PPMfilename
-	[L , W ]: to [:integer] split.words fullimage\[1]
-	theRaster: (to :binary fullimage\[3])
+	rawfile: (read PPMfilename)
+	fullimage: split.by:"\n" rawfile
+	;print fullimage
+	[L , W ]: to [:integer] split.words to :string fullimage\[1]
+
+	;print to :string  fullimage\[0]
+	;print to :string  fullimage\[1]
+	print [L, " ", W]
+
+	fullimage2: read.binary PPMfilename ; a binary
+	;inspect fullimage2
+	;nHexas: to :integer round log fullimage2 16*16
+	;print nHexas ;; full amount, 13 first ones are size markers.
+	
+	
+	; inspect   fullimage2
+
+	;print  [:binary [39 40 ED 1C 24 ED 1C 24 ED 1C 24 ED  1C 24 ED 1C 24 ED 1C 24 F5 79 7D ]]
+	;inspect  map (split.every: 2 [:binary [39 40 ED 1C 24 ED 1C 24 ED 1C 24 ED  1C 24 ED 1C 24 ED 1C 24 F5 79 7D ]]) 'v [to :string v]
+	start:12
+	thearray: []
+	loop start..dec (((L*W*3)+start) ) 'v [
+		;print v
+		'thearray ++ @[get fullimage2 v]	
+	]
+	;print thearray
+	theRaster: thearray
+	;print size theRaster
+	;print theRaster
+
 	StructuredRaster: (convert_flattened_list_to_row_cols_3 L W theRaster)
-	return RGB_twoDArray_to_Shell_image StructuredRaster  "█"
+	;print StructuredRaster
+	return RGB_twoDArray_to_Shell_image StructuredRaster  "█" ; #(■ █ x 
 	
 ]
 
-print raw_RGB_json_to_shell "ascii_image.json"
+PPM_to_shell: $[PPMfilename :string ] [ ;-> void 
+	; filename:  "ascii_image.json" ; " 16pixels.rgb"    
+	rawfile: (read PPMfilename)
+	fullimage: split.by:"\n" rawfile
+	;print fullimage
+	[L , W ]: to [:integer] split.words to :string fullimage\[1]
 
-;print PPM_to_shell "to_shell_indexed.ppm"
+	;print to :string  fullimage\[0]
+	;print to :string  fullimage\[1]
+	print [L, " ", W]
+
+	fullimage2: read.binary PPMfilename ; a binary
+	;inspect fullimage2
+	;nHexas: to :integer round log fullimage2 16*16
+	;print nHexas ;; full amount, 13 first ones are size markers.
+	
+	
+	; inspect   fullimage2
+
+	;print  [:binary [39 40 ED 1C 24 ED 1C 24 ED 1C 24 ED  1C 24 ED 1C 24 ED 1C 24 F5 79 7D ]]
+	;inspect  map (split.every: 2 [:binary [39 40 ED 1C 24 ED 1C 24 ED 1C 24 ED  1C 24 ED 1C 24 ED 1C 24 F5 79 7D ]]) 'v [to :string v]
+	start:12
+	thearray: []
+	loop start..dec (((L*W*3)+start) ) 'v [
+		;print v
+		'thearray ++ @[get fullimage2 v]	
+	]
+	;print thearray
+	theRaster: thearray
+	;print size theRaster
+	;print theRaster
+
+	StructuredRaster: (convert_flattened_list_to_row_cols_3 L W theRaster)
+	
+	;print StructuredRaster
+	;
+	return RGB_twoDArray_to_Shell_image StructuredRaster "█"  ; #( █ x "█■x#[(!/eoeu-."
+	
+]
+
+
+;print raw_RGB_json_to_shell "./side_projects/ascii_image.json"
+
+print PPM_to_shell "./side_projects/to_shell_indexed.ppm"
+;print PPM_to_shell "./side_projects/Arturo_color_logo.ppm"
+
+image_to_ppm_magick: $[filename_native]  [
+	
+	filename_ppm: last chop split.by:"." filename_native  
+	to_execute: (~"magick |filename_native| |filename_ppm|.ppm")
+	;print ["running: " to_execute]
+	; -resize 50%
+	execute.directly  (~"magick |filename_native| |filename_ppm|.ppm")
+	print ~"file converted to |filename_ppm|.ppm"
+	return ~"./|filename_ppm|.ppm"
+]
+
+
+print PPM_to_shell  image_to_ppm_magick   "side_projects/arturo_logo_red.png"
+;print PPM_to_shell "./side_projects/rotated_arturo_logo.pmm"
