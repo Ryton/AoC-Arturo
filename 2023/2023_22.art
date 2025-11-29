@@ -1,0 +1,116 @@
+#!/home/grimalkin/.arturo/bin/arturo -
+;; ;==========================================
+;; Advent of Code solution 
+;;
+;; @file: tools/<year>_<day>.art (or default)
+;; @author: Mixomycetes
+;;
+;; Disclaimer: this code is pretty, nor effective!
+;; But i use the challenges as a springboard learn concepts 
+;; ==========================================
+
+
+
+;; ============ GLOBAL CONSTANTS ===============
+year: 2023
+day: 22
+
+RunExample: true ; true = toy example input. false = using own input
+;;verbose: true  ; terminal log puke
+;;plot: true ; terminal plotting (w colors :D)
+
+
+
+; ============ HELPER FUNCTIONS  ===============
+parse: $[day,year][
+    do "../helperfiles/GetAoCData.art"
+    demoex:  split.lines {   1,0,1~1,2,1
+0,0,2~2,0,2
+0,2,3~2,2,3
+0,0,4~0,2,4
+2,0,5~2,2,5
+0,1,6~2,1,6
+1,1,8~1,1,9} 
+    (RunExample)? -> inputstr: demoex -> inputstr: split.lines read ~"../data/input|year|_|day|.txt"; for B
+
+
+    blocklist:  map inputstr 'i [split.by: "~" i ]
+    blockrange: [] 
+
+    loop blocklist 'block [
+        froms: to [:integer]  split.by: "," first block
+        tos: to [:integer]  split.by: "," first block
+        'blockrange ++ @[@[froms\0 tos\0
+                        froms\1 tos\1
+                        froms\2 tos\2
+                ]]
+    ]
+
+    ;print inputstr
+    return blockrange
+]
+
+solveA: $[blockrange][
+
+; drop one
+loop blockrange 'block [
+        print [block "=> x,y,z " ]
+        ;while not CanDropOne block blockrange => 
+;check -1
+]
+
+;print blockrange 
+return 0
+]
+
+CanDropOne: $[theblock,blockrange][
+    [x0 x1 y0 y1 z0 z1]: theblock
+    zbelow: dec min z0 z1 
+    isempty: true
+    loop x0..x1 'x[
+        loop y0..y1 'y[
+            loop blockrange 'ablock[
+                [bx0 bx1 by0 by1 bz0 bz1]: ablock
+                if between? z0 zx0 zx1 [
+                    if between? x0 bx0 bx1[
+                        if between? y0 by0 by1[
+                            return false ; not empty!
+                        ]]]]]]
+    return isempty
+]
+
+
+solveB: $[inputstr][
+return 0
+]
+
+
+
+;; ============ MAIN ENTRY POINT  ===============
+
+t0: benchmark.get  [ 
+blockrange: parse day year 
+]
+
+
+t1: benchmark.get  [ 
+    nsteps: (RunExample)? -> 6 -> 64 
+    answA: solveA blockrange
+
+    
+  print [~"|year| |day| a: " (answA)]
+  ]
+
+
+
+t2:  benchmark.get  [ 
+    print "Start B solve:" 
+    answB: "not solved"
+    print [~"|year| |day| b: " (answB) ] 
+    ]
+
+roundQTT_ms: $[t][to :quantity @[round.to:1 scalar (in `ms t), `ms]]
+
+
+print(~"Time to parse: \n |year|\\|day|parse) |roundQTT_ms t0| \n  Time to solve: \n |year|\\|day|a) |roundQTT_ms t1| \n |year|\\|day|b) |roundQTT_ms t2|")
+

@@ -1,0 +1,62 @@
+#!/home/grimalkin/.arturo/bin/arturo -e
+do "../helperfiles/GetAoCData.art"
+year: 2023
+; day: 7
+inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+l: #[]
+r: #[]
+lr: #[]
+path: inputstr\0
+inputstr: drop drop inputstr
+
+;inspect inputstr
+loop inputstr 'line [
+    ;print ["line " line]
+      word: (split.by: " "  line)
+            ;print word                
+            l\[word\0]:( drop (chop (word\2)))
+            l\[word\0]:( chop word\3)
+]
+demo: {
+AAA = (BBB, BBB)
+BBB = (AAA, ZZZ)
+ZZZ = (ZZZ, ZZZ)
+}
+l: #["AAA":"BBB" "BBB":"AAA" "ZZZ":"_" "_":"_"]
+r: #["AAA":"BBB" "BBB":"ZZZ" "ZZZ":"_" "_":"_"]
+route: [0 0 1]
+
+print route 
+lr: [l r]
+
+;inspect L
+; lr = global input
+onepass: $[start, route][
+    pos: start
+    loop route 'dir [        
+        inspect dir
+        if? zero?  dir [ pos2:  l\[pos]]
+        else            [pos2:  r\[pos]]
+
+        print ["pos" pos "to" pos2]
+        'pos: pos2
+    ]
+    print "cycle"
+
+    return pos
+]
+
+out: onepass "AAA" route ; print out
+
+loop 1..30 'it [
+while  [(size out) >2] [
+    out2: onepass out route
+    'out: new out2
+    print out
+    inspect (size out)
+    print ["it" it]
+    ]
+
+print ["cycles" (size out) * it]
+
+]

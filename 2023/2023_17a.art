@@ -1,0 +1,201 @@
+#!/home/grimalkin/.arturo/bin/arturo -
+
+demoex:{2413432311323
+3215453535623
+3255245654254
+3446585845452
+4546657867536
+1438598798454
+4457876987766
+3637877979653
+4654967986887
+4564679986453
+1224686865563
+2546548887735
+4322674655533}
+
+miniex:{11191
+99192
+99333}
+
+
+year: 2023
+day: 17
+inputstr: split.by:"\n\n" read ~"../data/input|year|_|day|.txt"; for B
+inputstr: demoex
+splitmap: map split.lines inputstr 'x [ map x [v][(to :integer v)-48]]
+
+;splitmap: map split.lines demoex 'x [ map x [v][(to :integer v)-48]]
+;inspect splitmap
+
+nrows: size split.lines inputstr
+ncols: size (first split.lines inputstr)
+print [nrows ncols ]
+
+nD: #[]
+tovisitL: []
+loop 0..(ncols*nrows) [x] [nD\[x]: #[
+    cost:1111 
+    pathto: "" ; string into this . "LRUD" 
+    visited:false
+    ]
+    'tovisitL ++ @[x]
+    ]
+
+    ;inspect tovisitL
+nD\[0]\cost: 0
+nD\[0]\pathto: "S" ; string into this . "LRUD" 
+;print (nD\[0]\cost)
+;inspect nD
+niter: 0
+; loop.with: 'it (keys nD) 'node[
+
+;        currentnode:     [0 0]
+;            [x y]: it  /% ncols
+;         ;   print [ x,y ]
+        
+;         currnodeID: x+ncols*y
+; ]
+
+dirdict: #["R": @[1 0] "U":@[ 0 (neg 1)] "L":@[neg 1 0] "D": @[0 1]]
+;print dirdict
+
+
+;;;;; actual dijkstra: but this fails bc of the extra requirement!! => should keep all valid paths, rather than only lowest cost.
+
+
+print "enter the loop"
+
+    
+
+tovisitL: [0]
+;   loop 0..(dec nrows*ncols) [x] [
+;       'tovisitL ++ @[x]
+;       ]
+
+while [(size tovisitL)>0][
+    inc 'niter
+    ;print [" left:"size tovisitL]
+    ;pick  a node to visit (first unvisited w lowest cost!)
+    mincost: min sort map tovisitL [id] [nD\[to :string  id]\["cost"]]
+    ;only use those
+    ;print ["mincost: " mincost ]
+
+
+    minID: first select tovisitL [id] [(equal? (nD\[to :string id]\["cost"]) (mincost))]
+    ;print ["mincost check: " minnode\cost ]
+    currnodeID: minID
+    ;minnode: nD\[minID]
+    ;print [mincost minID  minnode ]
+    ;(keys minnode)\[0]
+    [y x]: currnodeID  /% (nrows) ;xycoords of node
+    ;print ["checking paths around " x y ]
+
+    loop "RLUD" 'dir [ 
+        ;print [dir "from node "x ", "y ] go all directions and check
+         out: dirdict\[dir]
+         prevdir: last (nD\[currnodeID]\["pathto"])
+         i:  new (first out)
+         j:  new (last out)
+         
+         OK: true
+         checkID: ((x+i)+(j+y)*(nrows)) ;; new target
+        ;print ["prevdir" prevdir "dir" dir]
+        if any? @[ 
+              (all? [(i<0) prevdir= "R"] )  
+              (all? [(i>0) prevdir= "L"] ) 
+              (all? [(j<0) prevdir= "D"] )  
+              (all? [(j>0) prevdir= "U"]) 
+            (not? ((x+ i) <=> 0  dec nrows)) 
+            (not? ((y+j) <=> 0  dec ncols))
+           ]
+           [ OK:false
+           ;print "failed one"
+           ]  ; node is invalid, thus skip (for now).
+           
+           ;print [(x+ i), y+j*nrows]
+        if OK [
+
+           last3: (tally last.n:3 nD\[currnodeID]\["pathto"])
+            sort.descending.values 'last3
+            
+          if (all? @[((first keys last3) = (to :string dir)) ((first values last3) = 3)]) [ ;
+          ;(checkID = currnodeID)])
+                    OK:false
+                    print [last3 dir]
+                      print "failed two"
+          ]  ; second check after confirmed on grid
+          ;print OK
+          if OK [
+            ;print "passed two"
+            
+            ;; todo: debug this part!
+            ;print "checking"
+               curval: (nD\[checkID]\["cost"])
+               ;inspect curval
+               sourceval: nD\[currnodeID]\cost
+               delta: splitmap\[(x + i)]\[(y+j)] 
+               newval: (sourceval + delta)
+               ;print(~"|sourceval|+|delta| =  | newval|")
+               ;inspect newval 
+               curpath: (nD\[currnodeID]\["pathto"])
+
+               newpath:  curpath ++ to :string dir
+               ;print newpath ; TODO still issues here!
+               
+               if (newval < curval) [
+                  checkednode: new #[]
+                  
+                  checkednode\["cost"]: newval
+                  checkednode\["pathto"]: newpath
+                  checkednode\["visited"]: false
+                  'tovisitL ++ @[checkID]
+                  ;print checkednode
+                  nD\[checkID]: checkednode
+                  
+                  ;print ~"readded  |checkID| w cost (old |curval|):  Last step: |nD\[currnodeID]\cost|+|splitmap\[(y+j)]\[(x + i)]| =  | newval|"
+                  ;print ~"readded  |checkID| w cost (old |curval|):  Last step: |sourceval|+|delta| =  | newval|"
+                  ;print ["assigned"  (x+i  y+j)]
+                   ;print "assigned"
+                   ;print ["curr cost was " curval " New cost:" newval ]
+                   ;print ["currpath"curpath]
+               ;print [nD\[checkID]]
+               ]
+
+            ] 
+        ] ; ok cond 1
+    ]
+
+; set current node to visited
+        remove 'tovisitL currnodeID
+        nD\[currnodeID]\["visited"]: true
+        
+ 
+
+;print tovisitL ; should be empty
+ ;print map tovisitL [id] [nD\[to :string  id]\["cost"]]
+ ;print ["endcost: " nD\[13*13]\cost]
+]
+print [~"n iterations:  |niter|"]
+
+print ["endnode"nD\[dec (nrows* ncols)]] ; result.
+
+padding: 5
+prints repeat [pad repeat "_" padding padding] nrows
+loop 0..dec nrows 'x[
+print ""
+    
+    
+    prints "|"
+    loop 0..dec ncols 'y [ 
+        prints[pad to :string nD\[x+nrows*y]\cost padding]
+    ]
+    prints "|"
+]
+print ""
+prints repeat [pad repeat"-" padding padding] nrows
+print ""
+
+;inspect nD
+
+

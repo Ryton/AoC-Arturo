@@ -1,0 +1,74 @@
+#!/home/grimalkin/.arturo/bin/arturo -
+;; ;==========================================
+;; Advent of Code solution 
+;;
+;; @file: tools/<year>_<day>.art (or default)
+;; @author: Mixomycetes
+;;
+;; Disclaimer: this code is pretty, nor effective!
+;; But i use the challenges as a springboard learn concepts 
+;; ==========================================
+
+
+
+;; ============ GLOBAL CONSTANTS ===============
+year: 2023
+day: 20
+
+RunExample: true ; true = toy example input. false = using own input
+;;verbose: true  ; terminal log puke
+;;plot: true ; terminal plotting (w colors :D)
+
+
+
+; ============ HELPER FUNCTIONS  ===============
+parse: $[day,year][
+    do "../helperfiles/GetAoCData.art"
+    demoex: {broadcaster -> a, b, c
+    %a -> b
+    %b -> c
+    %c -> inv
+    &inv -> a}
+
+    (RunExample)? -> inputstr: demoex -> inputstr: split.lines read ~"../data/input|year|_|day|.txt"; for B
+    print inputstr
+    return inputstr
+]
+
+solveA: $[inputstr][
+return 0
+]
+solveB: $[inputstr][
+return 0
+]
+
+
+
+;; ============ MAIN ENTRY POINT  ===============
+
+t0: benchmark.get  [ 
+inputstr: parse day year 
+]
+
+
+t1: benchmark.get  [ 
+    nsteps: (RunExample)? -> 6 -> 64 
+    answA: solveA inputstr
+
+    
+  print [~"|year| |day| a: " (answA)]
+  ]
+
+
+
+t2:  benchmark.get  [ 
+    print "Start B solve:" 
+    answB: "not solved"
+    print [~"|year| |day| b: " (answB) ] 
+    ]
+
+roundQTT_ms: $[t][to :quantity @[round.to:1 scalar (in `ms t), `ms]]
+
+
+print(~"Time to parse: \n |year|\\|day|parse) |roundQTT_ms t0| \n  Time to solve: \n |year|\\|day|a) |roundQTT_ms t1| \n |year|\\|day|b) |roundQTT_ms t2|")
+

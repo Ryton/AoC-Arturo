@@ -1,0 +1,130 @@
+#!/home/grimalkin/.arturo/bin/arturo -
+
+year: 2023
+day: 14
+do "../helperfiles/library.art"
+
+demoex: split.lines {O....#....
+O.OO#....#
+.....##...
+OO.#O....O
+.O.....O#.
+O.#..O.#.#
+..O..#O..O
+.......O..
+#....###..
+#OO..#....}
+
+parse: $[day,year][
+;    do "../helperfiles/GetAoCData.art"
+    inputstr: chop read.lines ~"../data/input|year|_|day|.txt"; for B
+    inputstr: demoex
+    print " ---- input ------ "
+        loop inputstr 'lines [
+        ;print lines
+    ] 
+    
+    print " "
+
+    return inputstr
+]
+;inspect inputstr
+
+
+countrow: $[line][ "##****...."
+]
+
+solveA: $[inputstr nrotations][
+        
+    print "--- Output: --- "
+    newdemo: inputstr
+    map 'newdemo 'lines [replace lines "O" "*"]
+    newdemo:rotCW newdemo ; for A, to get right startpos!
+
+
+    shifted: newdemo
+    
+    
+
+    loop (1..nrotations) 'rot [
+        ;print "--- CW rot --- "
+        ;loop newdemo 'lines [
+            ;print lines
+        ;] 
+        shifted:rotCW shifted ; for A
+        shifted: map shifted 'lines  [ join flatten (map chunk (lines) 'x [equal? to :char "#" x] 'achunk [sort.descending achunk])]
+        toEval: shifted
+        loop 0..(mod (dec rot) 4) 'c [
+            'toEval:  rotCCW toEval   ; for A
+        ]
+
+
+        
+    
+    rightup: toEval ; for B
+
+    ;print "---sorted (4 cyles) -- "
+    X: (size rightup)
+    ;print X
+    storecost: []
+     loop.with: 'i rightup 'lines [
+         ;print lines
+         atally: (tally lines)
+         val:0
+         if key? atally (to :char "*")  [val: (atally\["*"])]
+         cost: (val * (X-i))
+         ;print cost
+         'storecost ++ @[cost]
+
+     ] 
+      print [rot ": " sum storecost]  
+         ;print storecost
+    
+        ]
+        return storecost
+]
+
+; takes way too long, 10 s or so!
+
+solveB: $[inputstr][
+nrotations: 100000
+    
+return solveA inputstr nrotations
+]
+
+t0: benchmark.get  [ 
+    inputstr: parse day year
+   ; inputstr: parse day year
+]
+
+
+t1: benchmark.get  [ 
+
+; one startpos
+    answA: sum solveA inputstr 1
+
+    print [~"|year| |day| a: "  ( answA )] 
+]
+
+
+t2:  benchmark.get  [ 
+    print "Start B solve: (TBC!)"
+    answB: solveB inputstr
+
+    print [~"|year| |day| b: " answB  ] 
+    ]
+
+
+; roundQTT_ms: $[t][to :quantity @[round.to:1 scalar (in `ms t), `ms]]
+; print(~"Time to parse: \n |year|\\|day|parse) |roundQTT_ms t0| \n  Time to solve: \n |year|\\|day|a) |roundQTT_ms t1| \n |year|\\|day|b) |roundQTT_ms t2|")
+
+
+
+
+; 92476 too low , 105 too high.
+; 1104-688 
+; 416 cycle => 104482 
+
+;== 352  from front of cycle;
+; 64 ; from back
+; 1040 value iteration:: 
