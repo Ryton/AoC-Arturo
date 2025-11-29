@@ -1,10 +1,13 @@
 #!/bin/arturo -e
 ;;==========================================
-;; Advent of Code solution 
+;; Advent of Code helper files. Used to be a script file, now migrating towards a module. 
+;; Still not in the right structure  tho.
 ;;
-;; @file: tools/<year>_<day>.art (or default)
+;; @code file: <year>/<year>_<day>.art (or default)
 ;; @author: Mixomycetes
-;; function that fetches aoc data, and stores it to a data dir.
+;; helperfunctions that:
+;;    * fetches aoc data, and stores it to a data dir.
+;;    * allows to send answers from command line, and <stores previous answers in data dir>.
 
 ;; arguments: 
 ;; * year, string
@@ -12,9 +15,7 @@
 
 
 FetchInput: $[year day][
-    ;print ["args of Fetchinput" args]
-    ; resp: runtimeinjectoin
-    ;online fetch & store
+    
     ;; production       
 
     ;if? ((size arg) < 2) [
@@ -58,4 +59,61 @@ FetchInput: $[year day][
         print ["Saved." ]
         return data 
         ]
+]
+
+
+;; WORK IN PROGRESS, NOT functional yet! 
+; (it MIGHT send the right data, but it does get  the main page back so no quick way to verify. 
+; maybe there is info in the raw response, TBD.)
+; should prob store into a file bc it uses different processes
+; so .memoize will not do much without keepalive.
+SendAnswer: $[year day part answer ][
+    
+    
+    URL: ~"https://adventofcode.com/|to :string year|/day/|to :string  day|/answer" ; yes its inverse,
+    ;; pressing SUBMIT button is a type:"POST" like:
+    ;; POST 	https://adventofcode.com/2023/day/12/answer
+    ;; with payload
+    ;level=2
+    ;answer=This is a browserbased one
+
+    PersonalAocToken: (read path\current ++ "/.token")  ; content of file:  "session=53616c7465645 ... "  
+    
+    ;; cookie-> session id
+    headers: #[
+        "Cookie": ~"|PersonalAocToken|"
+        "Host": "adventofcode.com"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0); Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0"
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        "Accept-Language": "en-US,en;q=0.5"
+        ;"Accept-Encoding": "gzip, deflate, br, zstd"
+        "Content-Type": " text/html; charset=utf-8"; "application/x-www-form-urlencoded"
+        ;"Content-Length": "41"
+        "Origin": "https://adventofcode.com"
+        "DNT": "1"
+        "Sec-GPC": "1"
+        ;"Connection": "keep-alive"
+        "Referer": ~"https://adventofcode.com/|to :string  year|/day/|to :string  day|"
+        "Upgrade-Insecure-Requests": "1"
+        "Sec-Fetch-Dest": "document"
+        "Sec-Fetch-Mode": "navigate"
+        "Sec-Fetch-Site": "none";  user initiated! "same-origin"
+        "Sec-Fetch-User": "?1"
+        "Priority": "u=0, i"
+    ]
+    
+    Body: ~"level=|to :string part|&answer=|to :string answer|"
+    ; Body: #["level": to :string part "answer":  to :string answer] ;"
+
+    ;print ["headers " headers]
+    ;print ["Body " Body]
+
+    ServerAnswer: request.post .headers: headers URL #["Body": Body]
+    ;print ServerAnswer.body
+    
+    
+    ;browse ~"https://adventofcode.com/|year|/day/|day|"
+    ; or could also do this:
+    ; browse ~"https://adventofcode.com/|year|/day/|day|"
+    return ServerAnswer
 ]
