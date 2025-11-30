@@ -11,10 +11,24 @@
 ; 7) export to file
 
 
-RGB_twoDArray_to_Shell_image: $[image, symbol][
+;; constants /parameters
+DOUBLE_WIDE_OUTPUT: true ;; =>this makes square pixels with monospaced fonts! used in   RGB_twoDArray_to_Shell_image
+MAKE_GREYSCALE: false   ;; used in   RGB_twoDArray_to_Shell_image  => add (color  ** grayscale**  acolor  symbol)
+
+RGB_twoDArray_to_Shell_image: $[image, symbols][
 	"2D array with 3 values mapping to color, with symbol at pos."
-fullcolorimage: join.with:"\n" map 0..dec size image 'idx 
-		[ join map (to [:color] image\[idx]) 'acolor [(color  acolor  symbol)]]  
+if one? size symbols [symbol: repeat symbols 2] ; symbol: repeat symbols
+
+; DOUBLE WIDE.
+REPEATED_WIDTH: 1
+if DOUBLE_WIDE_OUTPUT [REPEATED_WIDTH: 2]
+
+	fullcolorimage: join.with:"\n" map 0..dec size image 'idx 
+		[ join map (to [:color] image\[idx]) 'acolor [repeat (color  acolor  (sample symbols))  REPEATED_WIDTH ]]  
+		   
+	
+; signgle wide
+
 return fullcolorimage
 ]
 
@@ -96,7 +110,7 @@ PPM_to_shell: $[PPMfilename :string ] [ ;-> void
 
 	;print  [:binary [39 40 ED 1C 24 ED 1C 24 ED 1C 24 ED  1C 24 ED 1C 24 ED 1C 24 F5 79 7D ]]
 	;inspect  map (split.every: 2 [:binary [39 40 ED 1C 24 ED 1C 24 ED 1C 24 ED  1C 24 ED 1C 24 ED 1C 24 F5 79 7D ]]) 'v [to :string v]
-	start:12
+	start:13*3
 	thearray: []
 	loop start..dec (((L*W*3)+start) ) 'v [
 		;print v
@@ -149,7 +163,7 @@ PPM_to_shell: $[PPMfilename :string ] [ ;-> void
 	
 	;print StructuredRaster
 	;
-	return RGB_twoDArray_to_Shell_image StructuredRaster "█"  ; #( █ x "█■x#[(!/eoeu-."
+	return RGB_twoDArray_to_Shell_image StructuredRaster split "██" ; ; also works wihth : split "█■x#[(!/eoeu.-~=$*"  ; #( █ x "█■x#[(!/eoeu-."
 	
 ]
 
@@ -172,4 +186,6 @@ image_to_ppm_magick: $[filename_native]  [
 
 
 print PPM_to_shell  image_to_ppm_magick   "side_projects/arturo_logo_red.png"
+print PPM_to_shell  (image_to_ppm_magick   "side_projects/black_white_test_r25.jpg")
+
 ;print PPM_to_shell "./side_projects/rotated_arturo_logo.pmm"
