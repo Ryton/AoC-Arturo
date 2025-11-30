@@ -1,0 +1,7 @@
+exe: switch "windows" = sys\os 
+    -> "unitt.bat" 
+    -> "unitt"
+
+fullpath: normalize ~"|path\home|/.arturo/packages/bin/cache/unitt/3.0.0/|exe|"
+code: execute.code.directly ~"|fullpath|"
+panic.unstyled.code: code ""

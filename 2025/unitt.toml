@@ -1,0 +1,5 @@
+# unitt.toml - Configuration for unitt
+
+path = "specs"              # Path to Tests
+suffix = ".spec.art"        # Test file's suffix
+binary = "/usr/bin/arturo"     # Arturo Binary

@@ -1,0 +1,21 @@
+import {unitt}!
+
+
+test "split should deal with unix path" [
+    expects.be: 'equal? @[
+        ["." "splited" "path"] 
+        split.path "./splited/path"
+    ]
+]
+
+
+describe: "tests wrt 2025 day 1" [
+import "2025/2025_01.art"!
+
+it: "should pass examples" [
+    expects.be: 'equal? @[
+        28
+        solve_A parsethis do getinput
+        ]
+    ]
+]
