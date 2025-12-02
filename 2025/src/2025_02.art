@@ -1,0 +1,90 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+
+    ; demodata
+    D: "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124"
+
+    print ["Day year " day year ]
+
+    ; personal data
+    P: do [FetchInput year day]
+
+
+    inputstr: P ; Pinput; Dinput 
+    
+    ;print ["inputstr: " type inputstr inputstr]
+    
+    return inputstr
+]
+
+parsethis: $[i] [
+    parsed:i | split.by:","
+                
+    return parsed
+        ;| map => split.by:"-" 
+    ]
+
+; ------Solution A -----------------------------------------
+
+solve_A:$[parsed]
+ [
+    
+   regexmask:  {/^(\d+)(\1)$/} 
+   invalid_IDs: map parsed 'pairs [
+    [start theend]: split.by: "-" pairs
+    checking:  @(to :integer start).. (to :integer theend)
+    select checking 'onenumber -> not? zero? match.count (to :string onenumber) regexmask
+   ]    
+    return sum unique flatten invalid_IDs  ; too high: 30247033747
+ ]
+
+
+; ----- Solution B------------------------------------------
+solve_B:$[parsed]
+ [
+   regexmask: {/^(\d+)(\1){1,999}$/}
+   return  sum unique flatten  map parsed 'pairs [
+    [ start theend]: split.by: "-" pairs 
+     checking:  @(to :integer start).. (to :integer theend)
+    select checking 'onenumber -> not? zero? match.count (to :string onenumber) regexmask
+   ]
+ ]
+
+
+
+; -----Main loop ------------------------------------------
+main: $[][
+    inputstr: getinput
+    parsed: parsethis inputstr
+
+
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
+    ]
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B parsed )] ; 2 less bc of white line in end
+    ]
+
+    print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+
+]
+
+
+main ; exectute main.
+; -----The End  ------------------------------------------

@@ -1,0 +1,124 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+
+
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+
+    print ["Day year " day year ]
+
+    ; personal data
+    P: do [FetchInput year day]
+    
+    ; demodata
+        D: {L68
+            L30
+            R48
+            L5
+            R60
+            L55
+            L1
+            L99
+            R14
+            L82}
+
+    inputstr: split.lines P ; Pinput; Dinput 
+    return inputstr
+]
+
+
+; ------Helperfunctions  -----------------------------------------
+
+parsethis: $[theinput] [
+    alist:[] ; start  
+        alist:  chop  map theinput 'v  [replace v ["R" "L" ] ["" "-"]]
+        alist: map alist 'w [to :integer w ]
+    return alist
+    ]
+
+strictmod100: $ [v][((v % 100) +100)%100] ; clams between 0 and 99
+
+; ------Solution A -----------------------------------------
+
+
+solve_A:$[alist]
+ [
+    
+    pos: [50]
+    loop alist 'delta [
+        'pos ++ strictmod100 delta + last pos
+        ]    
+    return get (tally pos) "0"
+ ]
+
+
+; ----- Solution B------------------------------------------
+solve_B:$[alist]
+ [
+        ; startpos at 0, and trigger at 50?
+        pos: [50]
+        loop alist 'delta [
+            'pos ++ mod (delta + last pos) 100
+        ]    
+
+
+        abspos: [50]
+        loop alist 'delta [
+            'abspos ++ ((last pos) + delta)
+        ]    
+        
+        
+        thisfails: {:
+                        steps: map abspos 'val [abs floor  (((val+1) // 100)-1)] ; steps in intervals but too many.
+                        delta_steps: map dec size steps 'i [abs(steps\[i]-steps\[i-1])]
+                        removetozero: (9001-(6568 +1165)) ; to find in 
+                        print ["removetozero" removetozero]
+        :}
+        
+        ; bruteforce my way, inspired by Krenium:
+        crossings: [0]
+
+        loop 0..(dec dec size abspos) 'anindex [  zerocrossings: enumerate (abspos\[(anindex)])..(abspos\[(anindex+1)]) 'click [zero? strictmod100 click ]
+                                        'crossings ++ zerocrossings
+                                        ]
+        
+        ;print delta_steps
+        
+        
+    return (sum crossings) - 1 * get (tally pos) "0" ; ((sum delta_steps)-removetozero)  ; - 2*get (tally pos) 0
+ ]
+
+
+; -----Main loop ------------------------------------------
+main: $[][
+    inputstr: getinput
+
+    alist: parsethis inputstr
+    ;print alist
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A alist) " should equal 1165"] ; 
+    ]
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B alist) " should equal  P2:6568 x"] ;
+    ]
+
+    print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+
+]
+
+main ; exectute main.
+; -----The End  ------------------------------------------
