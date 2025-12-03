@@ -1,0 +1,108 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+
+    ; demodata
+    D: {987654321111111
+        811111111111119
+        234234234234278
+        818181911112111
+         
+        } 
+    print ["Day year " day year ]
+
+    ; personal data
+    P: read.file.lines "./data/input_2025_3.txt"
+
+
+    inputstr: P  ; Pinput; Dinput 
+    
+    ;inspect @["inputstr: " type inputstr inputstr]
+    
+    return inputstr
+]
+
+parsethis: $[i] [
+    
+    i | split.lines
+      | return
+    ]
+
+; ------Solution A -----------------------------------------
+
+solve_A:$[parsed]
+ [
+   joltages: [] 
+   loop parsed 'availableBatts_nr [
+    if (empty? availableBatts_nr) -> continue
+    availableBatts: split to :string  availableBatts_nr 
+      sortedbatts: sort availableBatts
+      [_min, _max]: last.n:2 sortedbatts
+      maxIdx: index  availableBatts _max
+      minIdx: (dec size availableBatts) - index (reverse availableBatts) _min ; last occurence.
+      if not? (maxIdx = dec size availableBatts) [ 'joltages ++ @[to :integer _max ++  max availableBatts\[(inc maxIdx)..dec size availableBatts]] ]
+      if maxIdx = dec size availableBatts [ 
+        if maxIdx=<minIdx ->  'joltages ++ @[to :integer _max ++ _min]
+        if maxIdx>minIdx -> 'joltages ++ @[to :integer _min ++ _max]
+        ]
+      
+           ]
+
+    return (sum joltages) ; too low 16885
+ ]
+
+
+; ----- Solution B------------------------------------------
+solve_B:$[parsed]
+ [
+   return sum map chop parsed 'anumber [
+      current_best:       (anumber\[0..11])
+      remaining_digits:   anumber\[12..dec size anumber]
+      loop remaining_digits 'next_digit[
+        sorted_list: sort map (combine.by:12 ( (split current_best) ++ @[next_digit])) 'letterlist [join letterlist ]
+        'current_best: last sorted_list 
+        ] 
+      to :integer  current_best ;return to map   
+      ]
+ ]
+
+
+; -----Main loop ------------------------------------------
+main: $[][
+    t0: benchmark.get [
+    inputstr: getinput
+    parsed: parsethis inputstr
+    ]
+    
+
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
+    ]
+      t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B parsed )] ; 2 less bc of white line in end
+    ]
+    print(~"Time to parse: \n |year|\\|day|0) |t0|\n")
+
+    print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+
+]
+
+
+main ; exectute main.
+; -----The End  ------------------------------------------
