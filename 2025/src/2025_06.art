@@ -1,0 +1,114 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+;import {tabular}
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+    print [~"Day |day| year |year|"]
+    ; demodata
+    D: {:123 328  51 64 
+ 45 64  387 23 
+  6 98  215 314
+*   +   *   +  :}
+
+    ; personal data
+    P:  FetchInput year day
+    inputstr_local: P   ; Pinput; Dinput 
+ 
+    return inputstr_local
+]
+
+parsethis: $[input] [
+    input   | strip
+            | split.by: "\n"
+            | map 'v  [split.words v]
+            | return 
+    ]
+
+parsethisB: $[input] [
+    input   | strip
+            | split.by: "\n"
+            | map 'v  [split v]
+            | return 
+    ]
+
+
+; ------Solution A -----------------------------------------
+
+solve_A:$[parsed]
+ [
+    operators: last parsed
+    numberlists: chop parsed
+    ncols: max map numberlists 'rows [size rows]
+    nrows: size numberlists
+    answers:   map 0..dec size operators 'idx  [do join.with:  operators\[idx] map 0..dec nrows 'j 
+        [if ( idx <    size numberlists\[j])    [numberlists\[j]\[idx]]]  
+        ]
+    return sum answers 
+ ]
+
+
+; ----- Solution B------------------------------------------
+solve_B:$[parseforB]
+ [
+    ndigits: max map parseforB => size
+    nEQ: size drop parseforB 
+    operators: last parseforB
+    nops: size operators
+    operators: operators | join
+                         | remove " "
+                         | split
+    thematrix: []
+    loop 0..dec nEQ  'idx [
+        inputline: parseforB\[idx]
+        'thematrix ++ @[inputline ++ split repeat.times " " (ndigits - size inputline)]
+            ]
+    
+    numbers_transposed: thematrix | flatten
+                  | gather.with: 'i 'v [ i% size thematrix\[0] ] 
+                  | values
+                  | map => join
+                  | map => strip
+                  | chunk => empty?
+    
+    theresults: map 0.. dec size operators 'idx [        
+        join.with: (operators\[idx]) (numbers_transposed\[idx*2])
+    ]
+    
+    total_each: map theresults 'val -> do.times: 1 val
+    return sum total_each
+]
+
+; -----Main loop ------------------------------------------
+main: $[][
+    inputstr: getinput
+    
+    parsed: parsethis inputstr
+    parseforB: parsethisB inputstr
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
+    ]
+    
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B parseforB )] ; 2 less bc of white line in end
+    ]
+
+    print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+
+]
+
+main ; exectute main.
+; -----The End  ------------------------------------------

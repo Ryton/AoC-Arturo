@@ -13,7 +13,6 @@ FilenamewoExtention: first split.by:"." last split.by:"/" env\_
 day: to :string to :integer day ; stripping leading zeros, if present.
 ;
 ;;==========================================
-year: 2022
 
 
 ; ------ Input & parsing -----------------------------------------
@@ -66,7 +65,7 @@ solve_B:$[parsed]
 
 ; -----Main loop ------------------------------------------
 main: $[][
-    inputstr: do getinput
+    inputstr: getinput
     parsed: parsethis inputstr
 
 
