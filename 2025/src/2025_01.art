@@ -34,9 +34,10 @@ getinput: $[][
             L1
             L99
             R14
-            L82}
+            L82
+            }
 
-    inputstr: split.lines P ; Pinput; Dinput 
+    inputstr: split.lines P; D ; Pinput; Dinput 
     return inputstr
 ]
 
@@ -75,31 +76,67 @@ solve_B:$[alist]
             'pos ++ mod (delta + last pos) 100
         ]    
 
-
-        abspos: [50]
+        strictpos: [50]
         loop alist 'delta [
-            'abspos ++ ((last pos) + delta)
+            'strictpos ++ strictmod100 ((last strictpos) + delta)
+        ]    
+
+        abspos: [100050]
+        loop alist 'delta [
+            'abspos ++ ((last abspos) + delta)
         ]    
         
-        
-        thisfails: {:
-                        steps: map abspos 'val [abs floor  (((val+1) // 100)-1)] ; steps in intervals but too many.
-                        delta_steps: map dec size steps 'i [abs(steps\[i]-steps\[i-1])]
-                        removetozero: (9001-(6568 +1165)) ; to find in 
-                        print ["removetozero" removetozero]
-        :}
+        ;print ["pos" pos]
+        ;print ["abspos" abspos]
+        ;print ["strictpos" strictpos]
         
         ; bruteforce my way, inspired by Krenium:
         crossings: [0]
+        extracrossings: 0
 
-        loop 0..(dec dec size abspos) 'anindex [  zerocrossings: enumerate (abspos\[(anindex)])..(abspos\[(anindex+1)]) 'click [zero? strictmod100 click ]
-                                        'crossings ++ zerocrossings
+        ;endedonclick: 0
+        ;startedonclick: 0
+        ;zerocrossings: 0
+        loop 0..(dec dec size abspos) 'anindex [
+                                        ;print ["index " anindex extracrossings abspos\[(anindex)] abspos\[(anindex+1)]] 
+
+                                        ;minval: (min @[(abspos\[anindex]), (abspos\[anindex+1])])
+                                        ;maxval: (max @[(abspos\[anindex]), (abspos\[anindex+1])])
+                                        ; crossings bc of multiples of 100's
+                                        ;print [@[minval maxval]]
+                                        
+                                        zerocrossings: abs ((abspos\[anindex])-(abspos\[anindex+1]))/100
+                                        ;print zerocrossings
+                                        delta: alist\[anindex]
+                                        startpos: strictpos\[anindex]
+                                        rel_endpos: (startpos+ delta ) 
+                                        additionalcrossing: 1
+
+                                        ;; missing one crossings if strictpos + mod_value if > 100 or < 0.
+                                        if all? @[(between? (strictpos\[anindex]+ mod delta 100) 1 99)  ] [additionalcrossing: 0]
+                                        ;if all? @[(startpos =< 50)   (between? (pos\[anindex]+delta) 50 150 )      ] [additionalcrossing: 1]
+                                        ;if all? @[(startpos >= 50)   (between? (pos\[anindex]+delta) (neg 50) 50)  ] [additionalcrossing: 1]
+
+
+                                        ;  get rid of count if it ends on click, counted later w method A)
+                                        endedonclick:   0
+                                        startedonclick: 0
+                                        if (0 = strictmod100 abspos\[anindex]  )  [startedonclick: 1]
+                                        if (0 = strictmod100 abspos\[anindex+1])  [endedonclick: 1]
+
+                                        ;print (zerocrossings-startedonclick + endedonclick)
+                                        'extracrossings: max @[0 (zerocrossings+ max @[0 additionalcrossing - (startedonclick + endedonclick)])]
+                                        ;print ["zerocrossings" zerocrossings "extracrossings" extracrossings] 
+                                        'crossings ++ extracrossings
+                                        
+                                        
                                         ]
         
         ;print delta_steps
-        
-        
-    return (sum crossings) - 1 * get (tally pos) "0" ; ((sum delta_steps)-removetozero)  ; - 2*get (tally pos) 0
+        ;print ["crossings" crossings]
+        method_A_answer: get (tally pos) "0"
+        print ["method_A_answer" method_A_answer]
+    return (sum crossings) + method_A_answer ; ((sum delta_steps)-removetozero)  ; - 2*get (tally pos) 0
  ]
 
 
@@ -112,11 +149,12 @@ main: $[][
     t1: benchmark.get [
     print [~"|year| |day| a: " (solve_A alist) " should equal 1165"] ; 
     ]
+        
     t2: benchmark.get  [
-    print [~"|year| |day| b: " (solve_B alist) " should equal  P2:6568 x"] ;
+    print [~"|year| |day| b: " (solve_B alist) " should equal  P2:6568 x => 6496"] ;
     ]
 
-    print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+    print(~"Time to solve: \n |year|\\|day|a) |t1| \n |year|\\|day|b) |t2|")
 
 ]
 
