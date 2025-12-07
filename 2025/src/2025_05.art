@@ -1,0 +1,126 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+;;==========================================
+
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+
+    ; demodata
+    D: {3-5
+        10-14
+        16-20
+        12-18
+
+        1
+        5
+        8
+        11
+        17
+        32
+
+        }
+    ; personal data
+    P: FetchInput year day   
+    print ["Day year " day year ]
+
+    return P   ; P -> personal input  ; D: Demo input 
+]
+
+parsethis: $[inputstr] [
+    parsed: inputstr    | split.by:"\n\n"
+                        | split.lines
+     return parsed
+     ]
+
+
+; ------Helperfunctios  -----------------------------------------
+IsFresh?: $[foodID, stringrange][
+edges: to [:integer] split .by: "-" stringrange;  ()
+return (to :integer foodID) <=> (first edges) (last edges)
+]
+
+; ------Solution A -----------------------------------------
+solve_A:$[parsed]
+ [
+    ranges: split.by: "\n" (first parsed) ; | map => split .by: "-"
+    ingredients: split.by: "\n" chop last parsed 
+    freshones: select (ingredients) 'foodID [   
+                   any? (map ranges 'onerange [IsFresh? foodID onerange])]
+    return size freshones
+ ]
+
+
+RangesOverlap?: $[ apairofEdges ][ 
+    [a1 a2 b1 b2]: flatten apairofEdges
+    return ((max @[a2, b2]) - (min @[a1, b1])) =< (a2 - a1) + (b2 - b1)
+    ]
+
+ReturnOverlapped: $[ apairofEdges][ ; [[left-edge right-edge] [left-edge right-edge]]
+    [a1 a2 b1 b2]: flatten apairofEdges
+    themin: min themax: max dup @[a1 a2 b1 b2]
+    return @[themin themax]
+    ]
+
+; ----- Solution B------------------------------------------
+solve_B:$[parsed]
+ [
+
+    ranges: split.by: "\n" (first parsed) 
+    next_ranges: []
+    SplitRanges: sort map ranges 'strrange [to [:integer] split.by: "-" strrange]
+    current_n_ranges: size SplitRanges
+    n_ranges: 99999
+    while [(not? (n_ranges)=(current_n_ranges))] [
+        'current_n_ranges: size SplitRanges
+        alloptions:  combine.by: 2 SplitRanges
+        loop alloptions 'apair [
+            if (RangesOverlap? apair) [
+                        remove.instance 'SplitRanges first apair 
+                        remove.instance 'SplitRanges  last apair 
+                        'SplitRanges ++ @[ReturnOverlapped apair]
+                        'n_ranges: size SplitRanges
+                        break 
+                        ]                    
+            ]
+        ]
+
+        return sum map SplitRanges 'edges [inc ((last edges) - first edges ) ]
+]
+
+
+; -----Main loop ------------------------------------------
+main: $[][
+    inputstr: getinput
+    parsed: parsethis inputstr
+
+
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)]
+    ]
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B parsed )] 
+    ]
+
+
+    print(~"Time to solve:") 
+    print(~"|year|\|day|a) |(t1)| ")
+    print(~"|year|\|day|b) |(t2)| ")
+
+    ;print(~"|year|\|day|a) |(to :string round.to: 2 scalar t1)|  |to :string units t1|")
+    ;print(~"|year|\|day|b) |(to :string round.to: 2 scalar t2)|  |to :string units t2|")
+
+]
+
+
+main ; exectute main.
+; -----The End  ------------------------------------------

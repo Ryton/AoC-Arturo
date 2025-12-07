@@ -10,32 +10,31 @@
 import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
 FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
 [year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
-day: to :string to :integer day ; stripping leading zeros, if present.
+
+day: 5
+;day: to :string to :integer day ; stripping leading zeros, if present.
 ;
 ;;==========================================
 
 
 ; ------ Input & parsing -----------------------------------------
 getinput: $[][
+    print ["Day year " day year ]
+
 
     ; demodata
     D: [2 3 4 5 6 7] 
-    print ["Day year " day year ]
-
     ; personal data
-    P: do [FetchInput year day]
+    P: FetchInput year day
 
-
-    inputstr: D   ; Pinput; Dinput 
     
-    print ["inputstr: " type inputstr inputstr]
-    
+    inputstr: D   ; P: personal input; D: demo inputinput , can add more.
+    ;print ["input: " type inputstr inputstr]
     return inputstr
 ]
 
 parsethis: $[i] [
-    i   | map => [to :integer &]
-        | sum
+    i   | sum
         | return 
     ]
 
@@ -56,18 +55,15 @@ solve_A:$[parsed]
 solve_B:$[parsed]
  [
     return 0
-
  ]
-;print("pasring...")
-;print("solving...")
-
 
 
 ; -----Main loop ------------------------------------------
 main: $[][
+    t0: benchmark.get [
     inputstr: getinput
     parsed: parsethis inputstr
-
+    ]
 
     t1: benchmark.get [
     print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
@@ -76,7 +72,11 @@ main: $[][
     print [~"|year| |day| b: " (solve_B parsed )] ; 2 less bc of white line in end
     ]
 
-    print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+    print(~"Time to solve:") 
+    (to :string round.to: 2 scalar t2)|  |to :string units 
+    print(~"|year|\|day|0): | t0| (parsing)")
+    print(~"|year|\|day|a): | t1|")
+    print(~"|year|\|day|b): | t2|")
 
 ]
 

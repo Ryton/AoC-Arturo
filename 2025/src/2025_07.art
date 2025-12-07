@@ -1,0 +1,163 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+
+;day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+
+S: {.......S.......
+...............
+.......^.......
+...............
+}
+    ; demodata
+    D: {.......S.......
+...............
+.......^.......
+...............
+......^.^......
+...............
+.....^.^.^.....
+...............
+....^.^...^....
+...............
+...^.^...^.^...
+...............
+..^...^.....^..
+...............
+.^.^.^.^.^...^.
+...............
+}
+    print ["Day year " day year ]
+
+    ; personal data
+    P: FetchInput year day
+
+
+    inputstr: P  ; Pinput; Dinput 
+    
+    ;print ["inputstr: " type inputstr]
+    
+    return inputstr
+]
+
+parsethis: $[i] [
+    i   | split.by: "\n"
+        | chop
+        | return 
+    ]
+
+; ------Solution A -----------------------------------------
+
+solve_A:$[parsed]
+ [
+    
+    startindex: (index first parsed "S")
+    ;print startindex
+    nlines: size parsed
+    nextrays: @[(startindex)]
+    rays_at: []
+    symbol:""
+    countsplits: 0
+    counter: 0
+    loop parsed 'line [
+        print ["p1: "counter "/" nlines]
+        inc 'counter 
+        ;print line
+        'rays_at: new unique nextrays
+        'nextrays: rays_at
+        loop rays_at 'ray [
+
+            'symbol: line\[(ray)]
+            ;inspect symbol
+         if (equal? symbol '^') [ 
+            append 'nextrays  @[(ray)+1 (ray)-1]
+            inc 'countsplits
+            ]
+
+        
+        ]
+    ]
+   
+
+    return countsplits ; size  nextrays
+ ]
+
+
+; ----- Solution B------------------------------------------
+solve_B:$[parsed]
+ [
+    nlines: size parsed
+    startindex: (index first parsed "S")
+    beamsize: 1
+
+    timelines: #[]
+    ; initialise all timelines to 0
+    loop 0..dec size parsed\[0] 'idx  [timelines\[idx]: 0  ]
+    timelines\[to :string startindex]: 1 ;starting beamsize
+    nextrays: @[(startindex)]
+    rays_at: []
+    symbol:""
+    countsplits: 0
+    counter: 0
+    loop parsed 'line [
+        print ["p2: "counter "/" nlines]
+        inc 'counter 
+        'rays_at: new unique nextrays
+        'nextrays: rays_at
+        loop rays_at 'ray [
+            'symbol: line\[(ray)]
+            if (equal? symbol '^') [    ; ray has hit a splitter
+                    ; normal ray code
+                    append 'nextrays  @[(ray)+1 (ray)-1]
+                    inc 'countsplits
+                    ; tachyon split logic
+                    'beamsize: (timelines\[(to :string ray)])
+                    timelines\[to :string ray]: 0
+                    timelines\[(to :string (ray +1))]: timelines\[(to :string (ray +1))]+ beamsize 
+                    timelines\[(to :string (ray -1))]: timelines\[(to :string (ray -1))]+ beamsize 
+                    ]
+                ]
+   
+    ]
+    return sum values timelines ; size  nextrays
+ ]
+
+
+; -----Main loop ------------------------------------------
+main: $[][
+    inputstr: getinput
+    parsed: parsethis inputstr
+
+
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)] 
+    ]
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B parsed )] 
+    ]
+
+    print(~"Time to solve:") 
+    
+    print(~"|year|\|day|a) |to :string t1|")
+    print(~"|year|\|day|b) |to :string t2|")
+
+]
+
+
+main ; exectute main.
+; -----The End  ------------------------------------------

@@ -1,0 +1,159 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+;import {tabular}
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+
+    ; demodata
+    D: {..@@.@@@@.
+        @@@.@.@.@@
+        @@@@@.@.@@
+        @.@@@@..@.
+        @@.@@@@.@@
+        .@@@@@@@.@
+        .@.@.@.@@@
+        @.@@@.@@@@
+        .@@@@@@@@.
+        @.@.@@@.@.}
+    ;D: replace D  "@" "x"
+    ;D: replace D  "." "0"
+
+    print ["Day year " day year ]
+
+    ; personal data
+    P:  FetchInput year day
+
+    
+    
+    print D
+ 
+    return D
+]
+
+parsethis: $[i] [
+    print ["i" i]
+    output: i   | replace "@" "x"
+                ;| replace "." "0"
+                | split.by: "\n"
+                | map =>  strip
+                | map =>  split
+    print ["input" i]
+    return  output
+    ]
+
+extend: $[parsed] [
+    L: (size parsed)
+    W: (size parsed\[0])
+    value: 0
+
+    Grid: array.of: @[(W+2), (L +2)]  "."
+    
+        loop (1..L) 'y [
+            loop (1..W) 'x [            
+                Grid\[x]\[y]: (parsed\[y-1]\[x-1])
+                            ]
+            ]
+    print "Grid"
+    inspect Grid
+    
+    ]
+
+; ------Solution A -----------------------------------------
+
+solve_A:$[parsed]
+ [
+    Grid: extend parsed
+    print Grid
+
+
+    L: (size parsed)
+    W: (size parsed\[0])
+    tot: 0
+        loop (1.. W) 'y [            
+            loop (1..  L) 'x [
+                minx: (clamp dec x @[0 (inc L)])
+                miny: (clamp dec y @[0 (inc W)])
+                maxx: (clamp inc x @[0 (inc L)])
+                maxy: (clamp inc y @[0 (inc W)])
+                print [x y minx miny maxx maxy]
+                symbolHere: parsed\[x]\[y]
+
+
+                boxaround:@[@[(minx)(  miny)]        
+                            @[(   x)(  miny)]        
+                            @[(maxx)(  miny)]        
+                            @[(minx)(  y   )]        
+                            @[(   x)(  y   )]        
+                            @[(maxx)(  y   )]        
+                            @[(minx)(  maxy)]        
+                            @[(   x)(  maxy)]        
+                            @[(maxx)(  maxy)]       
+                            ]
+
+                Grid_Around: map boxaround [xypos] [
+                    
+                    x_index:  first xypos
+                    y_index: last xypos
+
+                    Grid\[x_index]\[y_index]]
+                 
+                print ["Grid_Around" (Grid_Around) ]
+                theTally: (tally (join Grid_Around)) 
+                print ["nboxes" theTally\["x"] ]
+                if (all? @[(equal? "x" symbolHere)
+                         (theTally\["x"] <4)
+                         ])
+                            [inc 'tot]
+            ]
+        ]
+    return tot
+ ]
+
+
+; ----- Solution B------------------------------------------
+solve_B:$[parsed]
+ [
+    return 0
+
+ ]
+;print("pasring...")
+;print("solving...")
+
+
+
+; -----Main loop ------------------------------------------
+main: $[][
+    inputstr: getinput
+    
+    parsed: parsethis inputstr
+    print "parsed"
+    inspect parsed 
+
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
+    ]
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B parsed )] ; 2 less bc of white line in end
+    ]
+
+    print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+
+]
+
+
+main ; exectute main.
+; -----The End  ------------------------------------------
