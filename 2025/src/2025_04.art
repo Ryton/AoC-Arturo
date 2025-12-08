@@ -14,7 +14,7 @@ day: to :string to :integer day ; stripping leading zeros, if present.
 ;
 ;;==========================================
 
-;import {tabular}
+import "tabular"!
 ; ------ Input & parsing -----------------------------------------
 getinput: $[][
 
@@ -28,111 +28,143 @@ getinput: $[][
         .@.@.@.@@@
         @.@@@.@@@@
         .@@@@@@@@.
-        @.@.@@@.@.}
-    ;D: replace D  "@" "x"
-    ;D: replace D  "." "0"
+        @.@.@@@.@.
+        }
 
     print ["Day year " day year ]
 
     ; personal data
     P:  FetchInput year day
 
-    
-    
-    print D
  
-    return D
+    return P
 ]
 
 parsethis: $[i] [
-    print ["i" i]
     output: i   | replace "@" "x"
-                ;| replace "." "0"
                 | split.by: "\n"
+                | chop  ;; thiis should be removed for demo data! 
                 | map =>  strip
                 | map =>  split
-    print ["input" i]
+    ;print ["input" i]
     return  output
     ]
 
 extend: $[parsed] [
-    L: (size parsed)
+    H: (size parsed)
     W: (size parsed\[0])
     value: 0
 
-    Grid: array.of: @[(W+2), (L +2)]  "."
+    Grid: array.of: @[(W+2), (H+2)]  "."
     
-        loop (1..L) 'y [
+        loop (1..H) 'y [
             loop (1..W) 'x [            
                 Grid\[x]\[y]: (parsed\[y-1]\[x-1])
                             ]
             ]
-    print "Grid"
-    inspect Grid
+    ;print "Grid"
+
+    return Grid
     
     ]
 
+
+xypairs: flatten.once map @[(neg 1) 0 1] 'x [ map @[(neg 1) 0 1] 'y [@[(x),(y)]]]
+
+
+boxCount?:  $[pos Grid][
+        boxsymbol:"x"
+        symbol:"D"
+        aline: ""
+        return size select xypairs 'xyp [
+            x: ((first pos) + first xyp )
+            y: ((last pos) + last xyp)            
+            symbol: (Grid\[(x)]\[(y)])
+            ;inspect symbol
+             (equal? symbol boxsymbol)
+            ]
+        
+
+]
+    
 ; ------Solution A -----------------------------------------
 
 solve_A:$[parsed]
  [
-    Grid: extend parsed
-    print Grid
-
-
-    L: (size parsed)
+    H: (size parsed)
     W: (size parsed\[0])
-    tot: 0
-        loop (1.. W) 'y [            
-            loop (1..  L) 'x [
-                minx: (clamp dec x @[0 (inc L)])
-                miny: (clamp dec y @[0 (inc W)])
-                maxx: (clamp inc x @[0 (inc L)])
-                maxy: (clamp inc y @[0 (inc W)])
-                print [x y minx miny maxx maxy]
-                symbolHere: parsed\[x]\[y]
+    Grid: (extend parsed)
+    boxsymbol:"x"
+    aline: ""
+    symbolHere:[]
+    boxpositions: []
+    loop 1..W 'x[
+        loop 1..H 'y [
+            'aline: (Grid\[(x)])
+            ;print (aline)
+            'symbolHere: get aline (y)
+            if ((symbolHere)=(boxsymbol)) ['boxpositions ++ @[@[(x) (y)]]]
 
-
-                boxaround:@[@[(minx)(  miny)]        
-                            @[(   x)(  miny)]        
-                            @[(maxx)(  miny)]        
-                            @[(minx)(  y   )]        
-                            @[(   x)(  y   )]        
-                            @[(maxx)(  y   )]        
-                            @[(minx)(  maxy)]        
-                            @[(   x)(  maxy)]        
-                            @[(maxx)(  maxy)]       
-                            ]
-
-                Grid_Around: map boxaround [xypos] [
-                    
-                    x_index:  first xypos
-                    y_index: last xypos
-
-                    Grid\[x_index]\[y_index]]
-                 
-                print ["Grid_Around" (Grid_Around) ]
-                theTally: (tally (join Grid_Around)) 
-                print ["nboxes" theTally\["x"] ]
-                if (all? @[(equal? "x" symbolHere)
-                         (theTally\["x"] <4)
-                         ])
-                            [inc 'tot]
-            ]
         ]
-    return tot
+    ]
+    boxesremoved: 0
+    changed: 0
+        loop boxpositions 'pos [
+            if (5 > boxCount? pos Grid) [inc 'boxesremoved ]
+            ]
+            
+    return boxesremoved
  ]
 
 
 ; ----- Solution B------------------------------------------
 solve_B:$[parsed]
  [
-    return 0
+    H: (size parsed)
+    W: (size parsed\[0])
+    Grid: (extend parsed)
+    startamount: get (tally flatten Grid ) "x"
+    endamount: (new startamount) - 1
+    currentamount: 0
+    boxsymbol:"x"
+    boxesremoved: 0
+    prevQTTbox: neg 1
+    aline: ""
+    changed: 1
+    symbolHere:[]
+    boxpositions: []
+    nextboxpositions: []
+    boxPOSremoved: []
+    
+    loop 1..H 'x[
+        loop 1..W 'y [
+            'aline: (Grid\[(x)])
+            ;print (aline)
+            'symbolHere: aline\[(y)]
+            if ((symbolHere)=(boxsymbol)) ['boxpositions ++ @[@[(x) (y)]]]
 
+        ]
+    ]
+    
+    while [not? equal? currentamount endamount] [ ; could do while too.
+
+        currentamount: new endamount
+        ; check new state
+        loop boxpositions 'pos [                
+                if (5 > boxCount? pos Grid) [
+                    [x,y] : pos 
+                        inc 'boxesremoved 
+                        'changed: 1 
+                        'aline: (Grid\[(x)])
+                        aline\[(y)]:"u"
+                        Grid\[(x)]: aline
+                ]
+            ]
+
+        endamount: get (tally flatten Grid ) "x"
+        ]
+    return startamount-endamount
  ]
-;print("pasring...")
-;print("solving...")
-
 
 
 ; -----Main loop ------------------------------------------
@@ -140,8 +172,6 @@ main: $[][
     inputstr: getinput
     
     parsed: parsethis inputstr
-    print "parsed"
-    inspect parsed 
 
     t1: benchmark.get [
     print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
@@ -150,7 +180,7 @@ main: $[][
     print [~"|year| |day| b: " (solve_B parsed )] ; 2 less bc of white line in end
     ]
 
-    print(~"Time to solve: \n |year|\\|day|a) |t2| \n |year|\\|day|b) |t1|")
+    print(~"Time to solve: \n |year|\\|day|a) |t1| \n |year|\\|day|b) |t2|")
 
 ]
 
