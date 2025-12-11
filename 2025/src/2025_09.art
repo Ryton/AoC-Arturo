@@ -1,0 +1,212 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+
+;day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+    print ["Day year " day year ]
+
+
+    ; demodata
+D: {7,1
+11,1
+11,7
+9,7
+9,5
+2,5
+2,3
+7,3
+
+} 
+    ; personal data
+    P: FetchInput year day
+
+    
+    inputstr: P  ; P: personal input; D: demo inputinput , can add more.
+    ;print ["input: " type inputstr inputstr]
+    return inputstr
+]
+
+parsethis: $[i] [ ; dict w nodenumber and values
+    i       | split.by:"\n"
+            | chop ; need this for P
+            | map 'v [to [:integer]  split.by:"," v]
+            | return
+    ]
+
+
+; ------Solution A -----------------------------------------
+
+solve_A:$[parsed][
+    parsed  | combine.by: 2
+            | map 'v [ (call 'couple v)  | map 'w [(call 'sub w) | abs | inc ]] 
+            | map 'u [(call 'mul u)]
+            | max
+            | return
+ ]
+
+
+
+
+cornerGreen?: $ [pairlist position ][
+    return false
+]
+
+
+IsInPolygon?: $[ x y quadrant][
+    ;print map flatten parsed [xss yss] [@[xss yss ((xss)>= (x)) ((y+yss)>=0)]]
+    
+    ; a point should lay outside of that point in that quadrant (or edge case: be the corner)
+    if (equal? quadrant 1) -> return (some? (flatten parsed) [xss yss] [and? (xss>= x) ((neg yss) >= y)]) 
+    if (equal? quadrant 2) -> return (some? (flatten parsed) [xss yss] [and? (xss=< x) ((neg yss) >= y)])
+    if (equal? quadrant 3) -> return (some? (flatten parsed) [xss yss] [and? (xss=< x) ((neg yss) =< y)])
+    if (equal? quadrant 4) -> return (some? (flatten parsed) [xss yss] [and? (xss>= x) ((neg yss) =< y)])
+    ;print [quadrant inpolygon]
+    return (inpolygon) ;shoundnt happen.
+]
+
+; ----- Solution B------------------------------------------
+solve_B:$[parsed]
+ [
+    
+    corner_pairs: parsed  | combine.by: 2
+
+    str_corner_pairs: map corner_pairs 'c [join.with: "_" map c 'p [join.with: "_" map p 'e [pad.with: '0' to :string e 3]]]
+    ;print str_corner_pairs
+    surface_areas: map map corner_pairs 'v [ (call 'couple v)  | map 'w [(call 'sub w) | abs | inc ]] => product
+    ;print surface_areas
+    SortedDict:  sort.values.descending #.raw  flatten @[couple str_corner_pairs surface_areas] 
+    ;print SortedDict
+    CornersSolved: false
+    IsSolved: false
+    solution: 0
+    QuadrantP1: 0 
+    QuadrantP3:0 
+    QuadrantP4:0
+    p2_OK?: false
+    p4_OK?: false
+
+
+    xys: (gather.with:'i flatten parsed '_ [mod (i) 2]) 
+    xs: xys\0  
+    ys: xys\1
+
+
+    until[
+        loop keys SortedDict 'candidatepairs [
+            'CornersSolved: false
+
+            [x1 y1 x3 y3]: to [:integer] split.by: "_" candidatepairs
+            ;print ["checking: " x1,y1,x3,y3]
+
+                ; skip if points are on line => product is zero, => not biggest area. tho alwasy valid...
+                if (or? (equal? x1 x3) (equal? y1 y3))[
+                    'IsSolved: true                    
+                    'solution: SortedDict\[(candidatepairs)]
+                    break
+                    ]
+
+                ; y is counting UP from top to bottom => invert
+
+
+                oneTop: ((neg y1) > (neg y3))
+                oneRight: (x1 > x3)
+                if all? @[oneRight    oneTop ]                     [   'QuadrantP1: 1   ]
+                if all? @[not? oneRight oneTop      ]              [      'QuadrantP1: 2]
+                if all? @[not? oneRight not? oneTop ]              [     'QuadrantP1: 3 ]
+                if all? @[oneRight   not? oneTop  ]                [   'QuadrantP1: 4   ]
+                
+                
+                
+                ;print [ "QuadrantP1 "QuadrantP1]
+
+                'QuadrantP2: (inc ( QuadrantP1+2+ 2* (1-(mod QuadrantP1 2)))    %4) ; +1 or +3
+                'QuadrantP4: (inc (dec QuadrantP2+2 ) %4) ; +1 or +3
+                print [ "QuadrantP2 "QuadrantP2 "for point" x1 neg y3 ]
+                print [ "QuadrantP4 "QuadrantP4 "for point" x3 neg y1 ]
+                ;print ["target Quadrants: " QuadrantP2, QuadrantP4]
+                'p2_OK?:  IsInPolygon? x1  neg y3 QuadrantP2
+                'p4_OK?:  IsInPolygon? x3  neg y1 QuadrantP4
+                ;print ["points ok? " p2_OK? p4_OK? "would give surface "  SortedDict\[(candidatepairs)]]
+                'CornersSolved: (all? @[(p2_OK?) (p4_OK?)])
+                
+                if CornersSolved [ ; then also check internals
+                    print ["CornersSolved for " candidatepairs "checking edges now. Maybe "  SortedDict\[(candidatepairs)]]    
+                    
+                    ; make sure there's no polygon corner IN the candidate rectangle. it can be ON the edge though.
+                    IsSolved: not? some? (flatten parsed) [xss yss]  
+                                    [
+                                    and? between? abs xss inc min @[x1 x3] dec max @[x1 x3]
+                                         between?  yss inc min @[ y1 y3] dec max @[ y1  y3]
+                                    ]
+                            
+
+                    'solution: SortedDict\[(candidatepairs)]
+                    if (IsSolved) [print ["Corners Solved too for " (candidatepairs) "resulting in :"  SortedDict\[(candidatepairs) ]]
+                        ;print map (flatten parsed) [xss yss] [ all?
+                        ;         @[ (between? (xss) (inc min @[x1 x3]) (dec max @[x1 x3])) 
+                        ;                (between? (yss) (inc min @[neg y1 neg y3]) (dec max @[neg y1 neg y3]))
+                        ;            ]
+                        ;]
+                     ]
+
+                     
+                    ]
+                
+                    
+            if (IsSolved) [print ["sol might be " candidatepairs "with" SortedDict\[(candidatepairs)]] 
+                            break
+                        ]
+        ]
+    
+        
+    return solution 
+    ;; 1468516555 -> true solution. but still a bug lingering..
+    ;; wrong... 4180679976 <-> seems ok, but is not?// too small 92655
+
+    ]     
+    [IsSolved]
+
+    
+ return solution
+ ]
+
+
+; -----Main loop ------------------------------------------
+main: $[][
+    t0: benchmark.get [
+    inputstr: getinput
+    parsed: parsethis inputstr
+    ]
+
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
+    ]
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B parsed )] ; 2 less bc of white line in end
+    ]
+
+    print(~"Time to solve:") 
+    print(~"|year|\|day|0): | t0| (parsing)")
+    print(~"|year|\|day|a): | t1|")
+    print(~"|year|\|day|b): | t2|")
+
+]
+
+
+main ; exectute main.
+; -----The End  ------------------------------------------
