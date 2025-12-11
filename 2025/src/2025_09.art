@@ -34,8 +34,6 @@ D: {7,1
 } 
     ; personal data
     P: FetchInput year day
-
-    
     inputstr: P  ; P: personal input; D: demo inputinput , can add more.
     ;print ["input: " type inputstr inputstr]
     return inputstr
@@ -58,8 +56,6 @@ solve_A:$[parsed][
             | max
             | return
  ]
-
-
 
 
 cornerGreen?: $ [pairlist position ][
@@ -121,15 +117,12 @@ solve_B:$[parsed]
                     ]
 
                 ; y is counting UP from top to bottom => invert
-
-
                 oneTop: ((neg y1) > (neg y3))
                 oneRight: (x1 > x3)
                 if all? @[oneRight    oneTop ]                     [   'QuadrantP1: 1   ]
                 if all? @[not? oneRight oneTop      ]              [      'QuadrantP1: 2]
                 if all? @[not? oneRight not? oneTop ]              [     'QuadrantP1: 3 ]
                 if all? @[oneRight   not? oneTop  ]                [   'QuadrantP1: 4   ]
-                
                 
                 
                 ;print [ "QuadrantP1 "QuadrantP1]
@@ -154,17 +147,9 @@ solve_B:$[parsed]
                                          between?  yss inc min @[ y1 y3] dec max @[ y1  y3]
                                     ]
                             
-
                     'solution: SortedDict\[(candidatepairs)]
                     if (IsSolved) [print ["Corners Solved too for " (candidatepairs) "resulting in :"  SortedDict\[(candidatepairs) ]]
-                        ;print map (flatten parsed) [xss yss] [ all?
-                        ;         @[ (between? (xss) (inc min @[x1 x3]) (dec max @[x1 x3])) 
-                        ;                (between? (yss) (inc min @[neg y1 neg y3]) (dec max @[neg y1 neg y3]))
-                        ;            ]
-                        ;]
                      ]
-
-                     
                     ]
                 
                     
@@ -176,8 +161,7 @@ solve_B:$[parsed]
         
     return solution 
     ;; 1468516555 -> true solution. but still a bug lingering..
-    ;; wrong... 4180679976 <-> seems ok, but is not?// too small 92655
-
+    ;; 4616852656 => NOT ok.
     ]     
     [IsSolved]
 

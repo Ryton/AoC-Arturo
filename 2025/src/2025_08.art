@@ -1,0 +1,188 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+
+day: 5
+;day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+
+; ------ Input & parsing -----------------------------------------
+getinput: $[][
+    print ["Day year " day year ]
+
+
+    ; demodata
+    D: {162,817,812
+57,618,57
+906,360,560
+592,479,940
+352,342,300
+466,668,158
+542,29,236
+431,825,988
+739,650,466
+52,470,668
+216,146,977
+819,987,18
+117,168,530
+805,96,715
+346,949,466
+970,615,88
+941,993,340
+862,61,35
+984,92,344
+425,690,689
+
+} 
+    ; personal data
+    P: FetchInput year day
+
+    
+    inputstr: D   ; P: personal input; D: demo inputinput , can add more.
+    ;print ["input: " type inputstr inputstr]
+    return inputstr
+]
+
+
+
+
+parsethis: $[i] [ ; dict w nodenumber and values
+    o: i    | split.by:"\n"
+            | map 'v [ split.by:"," v]
+            | map 'v [ to [:integer] v]
+    ;adict: #.raw flatten 
+    adict: #.raw flatten.once map size o 'v [@[(pad.with: '0' (to :string v) 3 ) o\[v-1]]]
+    return adict
+    ]
+
+; 
+eucldist_cubed: $[d1,d2][ sum @[(pow ((d1\0) - (d2\0)) 2) + (pow ((d1\1) - (d2\1)) 2) + (pow ((d1\2) - (d2\2)) 2 )]]
+dist_cubed: $[L1 L2][sum map (couple L1 L2) 'a 'b => abs (a-b) ]
+; ------Solution A -----------------------------------------
+
+checkoccurence: $ [apair clusterlist position ][
+]
+
+
+solve_A:$[parsed]
+ [
+    ;print parsed
+    allpairs: reverse sort combine.by: 2 keys parsed
+    pairtodist: #[]
+    
+   loop allpairs 'pair [
+    [F,L]: pair
+    ;print [F, L]
+    posF: (parsed\[F])
+    posL:  (parsed\[L])
+    pairtodist\[F ++ "_" ++ L ]: eucldist_cubed  posL posF    
+   ]
+   sort.values 'pairtodist
+   
+   ;print pairtodist
+   
+   relevant_nodes: unique map (keys pairtodist) 'val [(split.by: "_" val)]
+   
+   maxconnectons: 10
+   nconnections: 0
+   closest_pairs: first.n: 30 relevant_nodes
+   clusters: @[first closest_pairs]
+   print ["relevant_nodes" closest_pairs]
+   
+   loop closest_pairs 'apair [
+        if (nconnections= maxconnectons)[break]
+        ;[F, L]: apair
+        ;clusterlist: checkoccurence apair clusterlist position
+        assigned?: false
+        loop 0.. dec size clusters 'c_idx [
+                if assigned? [break]
+                ;print ~"evaluating |apair|"
+                if any? flatten map clusters\[c_idx] 'v [ map apair 'w [(v=w)]] 
+                                [ 
+                                ;print ~"match found for one in |apair| occuring in  |clusters\[c_idx]| "
+                                clusters\[c_idx]: unique flatten @[((clusters\[c_idx]) ++ @[(apair)])]
+                                assigned?: true
+                                inc 'nconnections
+                                ]
+        ]
+    if (not? assigned?) ['clusters ++ @[apair]]
+   ]
+
+    print ["clusters after first pass " clusters ]
+    final_clusters: @[(first clusters)]
+
+    loop clusters 'mergecandidate [
+            assigned2?: false
+            loop 0.. dec size final_clusters 'idx [
+                    if (assigned2?) [break]
+                    localgroups: (final_clusters\[(idx)])
+                    print ["localgroups to compare " (localgroups) " with mergecandidate: " mergecandidate]
+                    if (any? flatten map localgroups 'v [ map mergecandidate 'w [(v=w)]])  [
+                                    print ~"merge match found!"
+                                    final_clusters\[(idx)]: unique flatten @[(final_clusters\[(idx)]) ++ (mergecandidate)]
+                                    assigned2?: true
+                                    continue
+                                    ]             
+                    ]
+    if not? assigned2? ['final_clusters ++ @[(mergecandidate)]]
+    ] 
+    
+
+
+
+
+
+   print  ["final clusters" final_clusters]
+    thefactors: map final_clusters  'group [dec size group]
+   print  ["thefactors" thefactors]
+    return product thefactors 
+
+ ]
+
+a: {
+        ;; now reloop and merge em.
+   }
+
+
+; ----- Solution B------------------------------------------
+solve_B:$[parsed]
+ [
+    return 0
+ ]
+
+
+; -----Main loop ------------------------------------------
+main: $[][
+    t0: benchmark.get [
+    inputstr: getinput
+    parsed: parsethis inputstr
+    ]
+
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
+    ]
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B parsed )] ; 2 less bc of white line in end
+    ]
+
+    print(~"Time to solve:") 
+    print(~"|year|\|day|0): | t0| (parsing)")
+    print(~"|year|\|day|a): | t1|")
+    print(~"|year|\|day|b): | t2|")
+
+]
+
+
+main ; exectute main.
+; -----The End  ------------------------------------------

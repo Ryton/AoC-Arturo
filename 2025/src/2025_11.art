@@ -22,17 +22,17 @@ getinput1: $[][
 
 
     ; demodata
-D1: {aaa: you hhh
-you: bbb ccc
-bbb: ddd eee
-ccc: ddd eee fff
-ddd: ggg
-eee: out
-fff: out
-ggg: out
-hhh: ccc fff iii
-iii: out
-}
+    D1: {aaa: you hhh
+    you: bbb ccc
+    bbb: ddd eee
+    ccc: ddd eee fff
+    ddd: ggg
+    eee: out
+    fff: out
+    ggg: out
+    hhh: ccc fff iii
+    iii: out
+    }
 
     ; personal data
     P: FetchInput year day
@@ -49,20 +49,20 @@ iii: out
 getinput2: $[][
     print ["Day year " day year ]
 
-D2: {svr: aaa bbb
-aaa: fft
-fft: ccc
-bbb: tty
-tty: ccc
-ccc: ddd eee
-ddd: hub
-hub: fff
-eee: dac
-dac: fff
-fff: ggg hhh
-ggg: out
-hhh: out
-}
+    D2: {svr: aaa bbb
+    aaa: fft
+    fft: ccc
+    bbb: tty
+    tty: ccc
+    ccc: ddd eee
+    ddd: hub
+    hub: fff
+    eee: dac
+    dac: fff
+    fff: ggg hhh
+    ggg: out
+    hhh: out
+    }
     ; personal data
     P: FetchInput year day
     inputstr:  chop P; D2; P: personal input; D: demo inputinput , can add more.
@@ -71,70 +71,78 @@ hhh: out
 ]
 
 parsethis: $[i] [ ; dict w nodenumber and values
-    parsed: map split.lines (translate i #[": ": ":$[]["" ": "+"]) => [""++&++"]"]
+    parsed: map split.lines (translate i #[": ":":$[]["" ":"+"]) => [""++&++"]"]
     return parsed            
     ]
 
-
 ; ------Solution A -----------------------------------------
-
 solve_A:$[parsed][
     out:1
-    loop parsed 'line [do line]
-    return (call 'you [])
- ]
+    loop parsed'line[do line]
+    return (call'you[])]
 
 ; ------helperfunction -----------------------------------------
-specialplus: $[A B][
+custom_PLUS: $[A B][  
+    ;; this function sums the counts IF it has seen both gates along the way, skips if it didnt.
     seen_fft: (get A 0)∧(get B 0)
     seen_dac: (get A 1)∧(get B 1)
     thesum: (get A 2) + (get B 2)
     return @[seen_fft seen_dac thesum]
      ]
-alias {##} 'specialplus
+alias {##} 'custom_PLUS
 
 
 ; ----- Solution B------------------------------------------
 solve_B:$[inputstr2][
+    ;; uses memoisation ofc.
+
     out: $[b1 b2].memoize[
-        if (and? (b1)  (b2)) [return @[(b1) (b2) 1]]
-        return @[(b1) (b2) 0]
+        ;; this returns 1 if the path has seen dac+fft (two booleans are true), 0 otherwise.
+        if (and? (b1) (b2)) [
+            return @[(b1) (b2) 1]]
+        ;else (impicit)
+            return @[(b1) (b2) 0]
         ]
 
     splitlist: split.by:"\n" inputstr2
-    todo: []
-    loop splitlist 'line [
-         ; for example, bbb: ccc ddd becomes:
-         ; bbb:$.memoize[b1 b2][ccc[b1,b2] ## ddd[b1,b2] ]        
+    toExecute: [] ; write list of functions
+
+
+    loop splitlist 'line [ 
+        ; loop input files and turn into executable arturo code:
+
+        ; for example, "bbb: ccc ddd" from input becomes:
+        ; bbb:$.memoize[b1 b2][ccc[b1,b2] ## ddd[b1,b2] ] with "##" the custom_PLUS, see above
+
         alist: split.words line
         thefunc: first alist
         elements: (drop alist)
-        processed: false
-        ;; assigning this fails
+        processed: false ; start with false, in case of either fft or dac, skip the normal/other case!
         if ("fft:"=thefunc)  [
                 ;print "FFT"
-                newfunc:  thefunc ++ " function [b1,b2].memoize[" ++   ; begin
-                    (join.with: " ## " (map elements 'el ["("++el++" true,b2 )"])) ++ ; middle
-                    "]" ; end
+                newfunc:  thefunc ++ "$[b1,b2].memoize[" ++                          ; begin
+                    (join.with: "##" (map elements 'el ["("++el++" true,b2 )"])) ++  ; middle
+                    "]"                                                              ; end
                     'processed: true
                     ]
          if ("dac:"=thefunc)   [
                     ;print "DAC"
-                    newfunc: thefunc++ " function [b1,b2].memoize[" ++   ; begin
-                    (join.with: " ## " (map elements 'el ["("++el++" b1, true )"])) ++ ; middle
-                    "]" ; end
+                    newfunc: thefunc++ "$[b1,b2].memoize[" ++                        ; begin
+                    (join.with: "##" (map elements 'el ["("++el++" b1, true )"])) ++ ; middle
+                    "]"                                                              ; end
                     'processed: true
                     ]
          if (not? processed)    [ ; normal case
                 ;print "OTHER"
-                newfunc: thefunc++ " function  [b1,b2].memoize[" ++   ; begin
-                    (join.with: " ## " (map  elements 'el ["("++el++" b1,b2 )"] ))++ ; middle
-                    "]" ; end
+                newfunc: thefunc++ "$[b1,b2].memoize[" ++                            ; begin
+                    (join.with: "##" (map  elements 'el ["("++el++" b1,b2 )"] ))++   ; middle
+                    "]"                                                              ; end
                     ]
-        'todo ++newfunc ++"\n"
-        do newfunc
+        'toExecute ++newfunc ++"\n"
+        do newfunc  ; parse the lot into arturo variables
         ]
-    ; start with not having seen it. Return the value (will only propagate true true.)
+    ; start with not having seen it. 
+    ; Return the value (will only propagate true true.)
     return get (call 'svr  @[false false]) 2
  ]
  
@@ -142,11 +150,11 @@ solve_B:$[inputstr2][
 ; -----Main loop ------------------------------------------
 main: $[][
     t0: benchmark.get [
+    
     inputstr: getinput1
     parsed: parsethis inputstr
-    inputstr2: getinput2
-    
-    
+
+    inputstr2: getinput2 ;different input demo-file for part B.
     ]
 
     t1: benchmark.get [
