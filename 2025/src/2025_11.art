@@ -1,0 +1,168 @@
+#!/bin/arturo -u
+;:==========================================
+;; Advent of Code solution 
+;;
+;: @file: 2025/<year>_<day>.art (or default)
+;: @input: inputs/<year>_<day>.art (or default)
+;: @author: Mixo
+;
+; global setup:
+import "helperfiles/GetAoCData.art"  ; loads helperfunctions, a.o fetching datafile 
+FilenamewoExtention: first split.by:"." last split.by:"/" env\_ 
+[year,day]: split.by:"_" FilenamewoExtention   ; extract year and day from filename.
+
+;day: to :string to :integer day ; stripping leading zeros, if present.
+;
+;;==========================================
+
+
+; ------ Input & parsing -----------------------------------------
+getinput1: $[][
+    print ["Day year " day year ]
+
+
+    ; demodata
+D1: {aaa: you hhh
+you: bbb ccc
+bbb: ddd eee
+ccc: ddd eee fff
+ddd: ggg
+eee: out
+fff: out
+ggg: out
+hhh: ccc fff iii
+iii: out
+}
+
+    ; personal data
+    P: FetchInput year day
+
+    
+    inputstr: D1; chop P   ; P: personal input; D: demo inputinput , can add more.
+    ;print ["input: " type inputstr inputstr]
+    return inputstr
+]
+
+
+
+; ------ Input & parsing for part B -----------------------------------------
+getinput2: $[][
+    print ["Day year " day year ]
+
+D2: {svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out
+}
+    ; personal data
+    P: FetchInput year day
+    inputstr:  chop P; D2; P: personal input; D: demo inputinput , can add more.
+    ;print ["input: " type inputstr inputstr]
+    return inputstr
+]
+
+parsethis: $[i] [ ; dict w nodenumber and values
+    parsed: map split.lines (translate i #[": ": ":$[]["" ": "+"]) => [""++&++"]"]
+    return parsed            
+    ]
+
+
+; ------Solution A -----------------------------------------
+
+solve_A:$[parsed][
+    out:1
+    loop parsed 'line [do line]
+    return (call 'you [])
+ ]
+
+; ------helperfunction -----------------------------------------
+specialplus: $[A B][
+    seen_fft: (get A 0)∧(get B 0)
+    seen_dac: (get A 1)∧(get B 1)
+    thesum: (get A 2) + (get B 2)
+    return @[seen_fft seen_dac thesum]
+     ]
+alias {##} 'specialplus
+
+
+; ----- Solution B------------------------------------------
+solve_B:$[inputstr2][
+    out: $[b1 b2].memoize[
+        if (and? (b1)  (b2)) [return @[(b1) (b2) 1]]
+        return @[(b1) (b2) 0]
+        ]
+
+    splitlist: split.by:"\n" inputstr2
+    todo: []
+    loop splitlist 'line [
+         ; for example, bbb: ccc ddd becomes:
+         ; bbb:$.memoize[b1 b2][ccc[b1,b2] ## ddd[b1,b2] ]        
+        alist: split.words line
+        thefunc: first alist
+        elements: (drop alist)
+        processed: false
+        ;; assigning this fails
+        if ("fft:"=thefunc)  [
+                ;print "FFT"
+                newfunc:  thefunc ++ " function [b1,b2].memoize[" ++   ; begin
+                    (join.with: " ## " (map elements 'el ["("++el++" true,b2 )"])) ++ ; middle
+                    "]" ; end
+                    'processed: true
+                    ]
+         if ("dac:"=thefunc)   [
+                    ;print "DAC"
+                    newfunc: thefunc++ " function [b1,b2].memoize[" ++   ; begin
+                    (join.with: " ## " (map elements 'el ["("++el++" b1, true )"])) ++ ; middle
+                    "]" ; end
+                    'processed: true
+                    ]
+         if (not? processed)    [ ; normal case
+                ;print "OTHER"
+                newfunc: thefunc++ " function  [b1,b2].memoize[" ++   ; begin
+                    (join.with: " ## " (map  elements 'el ["("++el++" b1,b2 )"] ))++ ; middle
+                    "]" ; end
+                    ]
+        'todo ++newfunc ++"\n"
+        do newfunc
+        ]
+    ; start with not having seen it. Return the value (will only propagate true true.)
+    return get (call 'svr  @[false false]) 2
+ ]
+ 
+
+; -----Main loop ------------------------------------------
+main: $[][
+    t0: benchmark.get [
+    inputstr: getinput1
+    parsed: parsethis inputstr
+    inputstr2: getinput2
+    
+    
+    ]
+
+    t1: benchmark.get [
+    print [~"|year| |day| a: " (solve_A parsed)] ; 2 less bc of white line in end
+    ]
+    t2: benchmark.get  [
+    print [~"|year| |day| b: " (solve_B inputstr2)] ; 2 less bc of white line in end
+    ]
+
+    print(~"Time to solve:") 
+    print(~"|year|\|day|0): | t0| (parsing)")
+    print(~"|year|\|day|a): | t1|")
+    print(~"|year|\|day|b): | t2|")
+
+]
+
+
+main ; exectute main.
+; -----The End  ------------------------------------------
